@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="never" />
+<title>测试页面</title>
+<script>
+if(top != self){  
+	top.location.href = self.location.href;  
+}
+document.write("<script src='./js/bieyu.js?v="+Math.random()+"'><\/script>");
+document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
+</script> 
+</head>
+<body>
+<script>
+</script>
+</body>
+</html>
