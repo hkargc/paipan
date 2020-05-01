@@ -1538,8 +1538,17 @@ class paipan{
         $rt['nl'] = $this->Solar2Lunar($yy, $mm, $dd); //农历生日
         $rt['tg'] = $tg; //八字天干数组
         $rt['dz'] = $dz; //八字地支数组
+        $rt['sz'] = array(); //四柱字符
+        $rt['ctg'] = array(); //天干字符
+        $rt['cdz'] = array(); //地支字符
+        for($i = 0; $i <= 3; $i++){
+            $rt['sz'][$i] = $this->ctg[$tg[$i]] . $this->cdz[$dz[$i]];
+            $rt['ctg'][$i] = $this->ctg[$tg[$i]];
+            $rt['cdz'][$i] = $this->cdz[$dz[$i]];
+        }
         $rt['sx'] = $this->csx[$dz[0]]; //生肖,與年地支對應
         $rt['xz'] = $this->cxz[$xz]; //星座
+        $rt['cyy'] = $this->cyy[$yytg[2]]; //日干阴阳
         
         return $rt;
     }
