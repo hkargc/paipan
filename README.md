@@ -55,14 +55,14 @@ p.gz2gl(ygz, mgz, dgz, hgz, yeai, mx);
 根据公历进行八字排盘
 p.fatemaps(xb, yy, mm, dd, hh, mt, ss);
 
-//引申出来的方法
-p.ValidDate(yy, mm, dd);
-p.GetWeek(yy, mm, dd); //计算公历的某天是星期几
-p.GetSolarDays(yy, mm); //获取公历某个月有多少天
-p.GetLunarDays(yy, mm, ry); //获取农历某个月有多少天
-p.GetRunyue(yy); //获取农历某年的闰月,0为无闰月
-p.GetZodiac(yy, mm, dd, hh, mt, ss); //根据公历年月日精确计算星座下标
-p.Get24JQ(yy); //求出含某公历年立春點開始的24节气的儒略日历时间
-p.MGZ(ygz); //根据年干支计算所有合法的月干支: 甲己之年丙作首...
-p.HGZ(dgz); //根据日干支计算所有合法的时干支: 甲己還加甲...
-p.GZ(tg, dz);
+//引申出来的方法<br />
+p.ValidDate(yy, mm, dd);<br />
+p.GetWeek(yy, mm, dd); //计算公历的某天是星期几<br />
+p.GetSolarDays(yy, mm); //获取公历某个月有多少天<br />
+p.GetLunarDays(yy, mm, ry); //获取农历某个月有多少天<br />
+p.GetRunyue(yy); //获取农历某年的闰月,0为无闰月<br />
+p.GetZodiac(yy, mm, dd, hh, mt, ss); //根据公历年月日精确计算星座下标<br />
+p.Get24JQ(yy); //求出含某公历年立春點開始的24节气的儒略日历时间<br />
+p.MGZ(ygz); //根据年干支计算所有合法的月干支: 甲己之年丙作首...<br />
+p.HGZ(dgz); //根据日干支计算所有合法的时干支: 甲己還加甲...<br />
+p.GZ(tg, dz);<br />
