@@ -1141,7 +1141,7 @@ function paipan() {
      * @param int ss 秒数(0-59)
      * @return int|false this.cxz[xz]
      */
-    this.GetZodiac = function(yy, mm, dd, hh, mt = 0, ss = 0) {
+    this.GetXZ = function(yy, mm, dd, hh, mt = 0, ss = 0) {
         var yy = this.intval(yy);
         var mm = this.intval(mm);
         var dd = this.intval(dd);
@@ -1434,7 +1434,7 @@ function paipan() {
         var hh = this.intval(hh);
         var mt = this.intval(mt);
         var ss = this.intval(ss);
-		
+
         if (this.ValidDate(yy, mm, dd) === false) {
             return false;
         }
@@ -1456,7 +1456,7 @@ function paipan() {
         var nwx = new Array(0, 0, 0, 0, 0); //五行数量 number of WuXing 这里不计算藏干里的
         var nyy = new Array(0, 0); //阴阳数量 number of YinYang 这里不计算藏干里的
 
-        var scs = new Array(1, 6, 10, 9, 10, 9, 7, 0, 4, 3); //日干對地支爲"子"者所對應的運程代碼
+        var szs = new Array(1, 6, 10, 9, 10, 9, 7, 0, 4, 3); //日干對地支爲"子"者所對應的運程代碼
 
         var ty = yy;
         var jr = this.GetPureJQsinceSpring(ty); //取得自立春開始的非中氣之24節氣
@@ -1489,27 +1489,38 @@ function paipan() {
         rt['nyy'] = nyy; //阴阳数量
         rt['nwx'] = nwx; //五行数量
 
+        rt['yytg'] = yytg; //各天干对应的阴阳
+        rt['yydz'] = yydz; //各地支对应的阴阳
+
+        rt['ewxtg'] = ewxtg; //各天干对应的五行
+        rt['ewxdz'] = ewxdz; //各地支对应的五行
+
         //日主與地支藏干決定十神
-        var bzcg = new Array();
-        var wxcg = new Array();
-        var yycg = new Array();
-        var bctg = new Array();
+        var bzcg = new Array(); //各地支的藏干
+        var wxcg = new Array(); //各地支的藏干对应的五行
+        var yycg = new Array(); //各地支的藏干对应的阴阳
+        var bctg = new Array(); //各地支的藏干对应的文字
         for (var i = 0; i <= 3; i++) { //0,1,2,3等四個
             wxcg[i] = new Array();
             yycg[i] = new Array();
             for (var j = 0; j <= 2; j++) { //0,1,2等三個
-                var nzcg = this.zcg[dz[i]][j]; //取得藏干表中的藏干代碼,zcg為一 4X3 之array
+                var nzcg = this.zcg[dz[i]][j]; //取得藏干表中的藏干代碼,zcg為一 4X3 之array the number of 支藏干
                 if (nzcg >= 0) { //若存在則取出(若為-1，則代表空白)
-                    bzcg[3 * i + j] = this.dgs[nzcg][tg[2]]; //暫存其所對應之十神文字
+                    bctg[3 * i + j] = this.ctg[nzcg]; //暫存其干支文字
+                    bzcg[3 * i + j] = this.sss[this.dgs[nzcg][tg[2]]]; //暫存其所對應之十神文字
+
                     wxcg[i][j] = this.wxtg[nzcg]; //其五行屬性
                     yycg[i][j] = nzcg % 2; //其陰陽屬性
-                    bctg[3 * i + j] = this.ctg[nzcg]; //暫存其干支文字
                 } else {
                     bctg[3 * i + j] = ""; //若nzcg為-1，則代表空白，設定藏干文字變數為空白
                     bzcg[3 * i + j] = ""; //若nzcg為-1，則代表空白，設定十神文字變數為空白
                 }
             }
         }
+        rt['bctg'] = bctg;
+        rt['bzcg'] = bzcg;
+        rt['wxcg'] = wxcg;
+        rt['yycg'] = yycg;
 
         //求算起運時刻
         for (var i = 0; i <= 14; i++) { //先找到指定時刻前後的節氣月首
@@ -1550,20 +1561,18 @@ function paipan() {
         rt['qyy_desc2'] = "每逢 " + jtd + " 年" + jt[1] + "月" + jt[2] + "日交大運"; //顯示每十年為一階段之起運時刻，分兩個五年以年天干和陽曆日期表示
         var qage = jqyy - ty; //起運年減去出生年再加一即為起運之歲數,從懷胎算起,出生即算一歲
 
+        rt['dy'] = new Array(); //大运
+
         //下面的回圈計算起迄歲，大運干支(及其對應的十神)，衰旺吉凶
-        var zqage = new Array();
-        var zboz = new Array();
-        var zbozc = new Array();
-        var zfman = new Array();
-        var zfmbn = new Array();
-        var zfma = new Array();
-        var zfmb = new Array();
+        var zqage = new Array(); //起始歲數
+        var zboz = new Array(); //末端歲數
+        var zfman = new Array(); //大運月干代码
+        var zfmbn = new Array(); //大運月支代码
+        var zfma = new Array(); //大運月干文字
+        var zfmb = new Array(); //大運月支文字
         var nzs = new Array(); //大运对应的十二长生
         var mgz = ((10 + tg[1] - dz[1]) % 10) / 2 * 12 + dz[1]; //这里是根据天干地支代码计算月柱的六十甲子代码
         for (var k = 0; k <= 8; k++) { //求各階段的起迄歲數及該階段的大運
-            if (rt['dy'] === undefined) { //大运
-                rt['dy'] = new Array();
-            }
             if (rt['dy'][k] === undefined) {
                 rt['dy'][k] = new Array();
             }
@@ -1582,20 +1591,20 @@ function paipan() {
             rt['dy'][k]['zfmb'] = zfmb[k] = this.cdz[zfmbn[k]];
 
             //算衰旺吉凶ncs
-            //scs(tg(2))爲日干對大運地支爲"子"者所對應之運程代碼
+            //szs(tg(2))爲日干對大運地支爲"子"者所對應之運程代碼
             //tg(2)爲生日天干(以整數0~11表示)之代碼
             //(-1)^tg(2)表示若日干爲陽則取加號,若日干爲陰則取减號
             //第一個大運之地支數值爲zfmbn(0)
-            //下式中scs(tg(2)) + (-1) ^ tg(2) * (zfmbn(0))為決定起始運勢,(-1) ^ forward * (-1) ^ tg(2) 為決定順推或逆推,可合併簡化為次一式
-            rt['dy'][k]['nzs'] = nzs[k] = (24 + scs[tg[2]] + Math.pow(-1, tg[2]) * (zfmbn[0] + Math.pow(-1, forward) * k)) % 12;
+            //下式中szs(tg(2)) + (-1) ^ tg(2) * (zfmbn(0))為決定起始運勢,(-1) ^ forward * (-1) ^ tg(2) 為決定順推或逆推,可合併簡化為次一式
+            rt['dy'][k]['nzs'] = nzs[k] = (24 + szs[tg[2]] + Math.pow(-1, tg[2]) * (zfmbn[0] + Math.pow(-1, forward) * k)) % 12;
             rt['dy'][k]['nzsc'] = this.czs[nzs[k]];
             //此處加24是爲了使Mod之前總值不爲負值
         }
 
         //求流年的數值表示值及對應的文字
-        var lyean = new Array();
-        var lyebn = new Array();
-        var lye = new Array();
+        var lyean = new Array(); //流年天干
+        var lyebn = new Array(); //流年地支
+        var lye = new Array(); //流年所對應的干支文字
         for (var j = 0; j <= 89; j++) {
             var k = this.intval(j / 10); //大运
             var i = j % 10; //流年
@@ -1625,23 +1634,23 @@ function paipan() {
             } //即為指定時刻所在的節氣月首JD值
         }
 
-		rt['mz'] = this.mz[xb]; //命造乾坤
+        rt['mz'] = this.mz[xb]; //命造乾坤
         rt['xb'] = this.xb[xb]; //性别0男1女
         rt['gl'] = [yy, mm, dd]; //公历生日
         rt['nl'] = this.Solar2Lunar(yy, mm, dd); //农历生日
         rt['tg'] = tg; //八字天干数组
         rt['dz'] = dz; //八字地支数组
-		rt['sz'] = new Array(); //四柱字符
-		rt['ctg'] = new Array(); //天干字符
-		rt['cdz'] = new Array(); //地支字符
-        for(var i = 0; i <= 3; i++){
+        rt['sz'] = new Array(); //四柱字符
+        rt['ctg'] = new Array(); //天干字符
+        rt['cdz'] = new Array(); //地支字符
+        for (var i = 0; i <= 3; i++) {
             rt['sz'][i] = this.ctg[tg[i]] + this.cdz[dz[i]];
-			rt['ctg'][i] = this.ctg[tg[i]];
-			rt['cdz'][i] = this.cdz[dz[i]];
-		}
+            rt['ctg'][i] = this.ctg[tg[i]];
+            rt['cdz'][i] = this.cdz[dz[i]];
+        }
         rt['sx'] = this.csx[dz[0]]; //生肖,與年地支對應
         rt['xz'] = this.cxz[xz]; //星座
-		rt['cyy'] = this.cyy[yytg[2]]; //日干阴阳
+        rt['cyy'] = this.cyy[yytg[2]]; //日干阴阳
 
         return rt;
     };
