@@ -1435,10 +1435,6 @@ function paipan() {
         var mt = this.intval(mt);
         var ss = this.intval(ss);
 
-        if (this.ValidDate(yy, mm, dd) === false) {
-            return false;
-        }
-
         //說明大誤差區域
         if (yy < -1000 || yy > 3000) { //適用於西元-1000年至西元3000年,超出此範圍誤差較大
             this.logs(1);
@@ -1449,7 +1445,9 @@ function paipan() {
         if (spcjd === false) {
             return false;
         }
-
+		
+		var [yy, mm, dd, hh, mt, ss] = this.Jtime(spcjd); //假设hh传了>24的数字,此处修正
+		
         var ta = 365.24244475; //一個廻歸年的天數
 
         var rt = new Array(); //要返回的数组 return

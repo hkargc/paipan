@@ -1341,11 +1341,7 @@ class paipan{
         $hh = intval($hh);
         $mt = intval($mt);
         $ss = intval($ss);
-        
-        if ($this->ValidDate($yy, $mm, $dd) === false) {
-            return false;
-        }
-        
+
         //說明大誤差區域
         if ($yy < -1000 || $yy > 3000) { //適用於西元-1000年至西元3000年,超出此範圍誤差較大
             $this->logs(1);
@@ -1356,6 +1352,8 @@ class paipan{
         if ($spcjd === false) {
             return false;
         }
+        
+        [$yy, $mm, $dd, $hh, $mt, $ss] = $this->Jtime($spcjd); //假设hh传了>24的数字,此处修正
         
         $ta = 365.24244475; //一個廻歸年的天數
         

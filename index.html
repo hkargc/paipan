@@ -8,7 +8,7 @@
 if(top != self){  
 	top.location.href = self.location.href;  
 }
-document.write("<script src='./js/jquery-1.12.4.min.js?v="+Math.random()+"'><\/script>");
+document.write("<script src='./js/jquery-1.12.4.min.js'><\/script>");
 document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 <!-- document.write("<script src='./js/paipan.min.js?v="+Math.random()+"'><\/script>"); -->
 </script> 
@@ -73,7 +73,7 @@ function chg(){
 	var runyue = p.GetRunyue(d[0]);
 	txt += "农历"+s+"年"+(runyue ? ("闰"+runyue+"月") : "无闰月")+"\n\n";
 	txt += "星期:"+p.wkd[p.GetWeek(yy, mm , dd)]+"\n\n";
-	txt += "星座:"+p.cxz[p.GetZodiac(yy, mm , dd, hh, mt, ss)]+"\n\n";
+	txt += "星座:"+p.cxz[p.GetXZ(yy, mm , dd, hh, mt, ss)]+"\n\n";
 	
 	//var d = p.
 	
