@@ -1120,6 +1120,10 @@ class paipan{
         $mt = floatval($mt);
         $ss = floatval($ss);
         
+        if($mt + $ss == 0){ //避免整点模糊
+			$ss = 10;
+		}
+        
         if ($this->ValidDate($yy, $mm, $dd) === false) {
             return false;
         }
