@@ -1,7 +1,7 @@
 <?php
-include(__DIR__ . '/lib/class.paipan.php');
+include(__DIR__ . '/lib/Calendar.php');
 include(__DIR__ . '/lib/class.paipan.gx.php');
-$p = new paipan();
+$p = new Calendar();
 
 $fm = $p->fatemaps(0, 1980, 1, 1, 0, 0, 0);
 

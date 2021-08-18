@@ -3,10 +3,10 @@
  * 根据文字生成关系表
  */
 if(php_sapi_name() !== 'cli'){ //sh# /path/to/bin/php make_gx.php
-    die();
+    die('当前非 cli 接口类型 @see https://www.php.net/manual/zh/function.php-sapi-name.php ');
 }
-include(__DIR__ . '/../lib/class.paipan.php');
-$p = new paipan();
+include(__DIR__ . '/../lib/Calendar.php');
+$p = new Calendar();
 
 $list = array();
 $list[0] = array(
