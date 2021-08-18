@@ -223,7 +223,7 @@ class paipan{
      * @param int $hh
      * @param int $mt
      * @param int $ss
-     * @return false|number
+     * @return false|int
      */
     public function Jdays($yy, $mm, $dd, $hh, $mt = 0, $ss = 0) {
         $yy = floatval($yy);
@@ -260,7 +260,7 @@ class paipan{
     /**
      * 將儒略日轉换爲公历年月日時分秒
      * @param float $jd
-     * @return array(年,月,日,时,分,秒)
+     * @return array (年,月,日,时,分,秒)
      */
     public function Jtime($jd) {
         $jd = floatval($jd);
@@ -405,7 +405,7 @@ class paipan{
     /**
      * 地球在繞日运行時會因受到其他星球之影響而產生攝動(perturbation)
      * @param float $jdez Julian day
-     * @return number 返回某时刻(儒略日历)的攝動偏移量
+     * @return float 返回某时刻(儒略日历)的攝動偏移量
      */
     private function Perturbation($jdez) {
         $jdez = floatval($jdez);
@@ -426,7 +426,7 @@ class paipan{
      * 求∆t
      * @param int $yy 公历年份
      * @param int $mm 公历月份
-     * @return number
+     * @return float
      */
     private function DeltaT($yy, $mm) {
         $yy = intval($yy);
@@ -526,10 +526,10 @@ class paipan{
         $jdez = array();
         $jdjq = array();
         
-        if (! is_array($this->MM['GetAdjustedJQ'])) {
+        if (!isset($this->MM['GetAdjustedJQ']) or !is_array($this->MM['GetAdjustedJQ'])) {
             $this->MM['GetAdjustedJQ'] = array();
         }
-        if (! is_array($this->MM['GetAdjustedJQ'][$yy])) {
+        if (!isset($this->MM['GetAdjustedJQ'][$yy]) or ! is_array($this->MM['GetAdjustedJQ'][$yy])) {
             $jdez = $this->MeanJQJD($yy, 0, 26); //輸入指定年,求該回歸年各節氣点
             for ($i = 1; $i <= 26; $i++) {
                 $ptb = $this->Perturbation($jdez[$i]); //取得受perturbation影響所需微調
@@ -630,7 +630,7 @@ class paipan{
      * 求出實際新月點
      * 以2000年初的第一個均值新月點為0點求出的均值新月點和其朔望月之序數k代入此副程式來求算實際新月點
      * @param int $k
-     * @return number
+     * @return float
      */
     private function TrueNewMoon($k) {
         $k = intval($k);
@@ -712,7 +712,7 @@ class paipan{
         $kn = $this->MeanNewMoon($spcjd); //求得自2000年1月起第kn個平均朔望日及其JD值
         for ($i = 0; $i <= 19; $i++) { //求出連續20個朔望月
             $k = $kn + $i;
-            $mjd = $thejd + $this->synmonth * $i;
+            // $mjd = $thejd + $this->synmonth * $i;
             $tjd[$i] = $this->TrueNewMoon($k) + 1 / 3; //以k值代入求瞬時朔望日,因中國比格林威治先行8小時，加1/3天
             //下式為修正dynamical time to Universal time
             $tjd[$i] = $tjd[$i] - $this->DeltaT($yy, $i - 1) / 1440; //1為1月，0為前一年12月，-1為前一年11月(當i=0時，i-1=-1，代表前一年11月)
