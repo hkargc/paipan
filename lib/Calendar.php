@@ -7,26 +7,32 @@
  * @author tangfou@gmail.com
  */
 class Calendar {
+
 	/**
 	 * 四柱是否区分 早晚子 时,true则23:00-24:00算成上一天
 	 */
 	public $zwz = true;
+
 	/**
 	 * 均值朔望月長 synodic month (new Moon to new Moon)
 	 */
 	private $synmonth = 29.530588853;
+
 	/**
 	 * 缓存数组,暂存一些中间结果
 	 */
 	private $MM = [];
+
 	/**
 	 * 是否输出错误信息
 	 */
 	public $debug = true;
+
 	/**
 	 * 星期 week day
 	 */
 	public $wkd = ['日', '一', '二', '三', '四', '五', '六'];
+
 	/**
 	 * 六十甲子
 	 */
@@ -38,70 +44,87 @@ class Calendar {
 		'甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
 		'甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥',
 	];
+
 	/**
 	 * 十天干 char of TianGan
 	 */
 	public $ctg = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+
 	/**
 	 * 十二地支 char of DiZhi
 	 */
 	public $cdz = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+
 	/**
 	 * 十二生肖 char of symbolic animals ShengXiao
 	 */
 	public $csx = ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬'];
+
 	/**
 	 * 廿四节气(从春分开始) JieQi
 	 */
 	public $jq = ['春分', '清明', '穀雨', '立夏', '小滿', '芒種', '夏至', '小暑', '大暑', '立秋', '處暑', '白露', '秋分', '寒露', '霜降', '立冬', '小雪', '大雪', '冬至', '小寒', '大寒', '立春', '雨水', '驚蟄'];
+
 	/**
 	 * 大写月份
 	 */
 	public $dxy = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '腊月'];
+
 	/**
 	 * 大写日期
 	 */
 	public $dxd = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '廿十', '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+
 	/**
 	 * 大写数字
 	 */
 	public $dxs = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+
 	/**
 	 * 五行 char of WuXing
 	 */
 	public $cwx = ['金', '水', '木', '火', '土'];
+
 	/**
 	 * 性别 XingBie
 	 */
 	public $xb = ['男', '女'];
+
 	/**
 	 * 命造 mingzao
 	 */
 	public $mz = ['乾', '坤'];
+
 	/**
 	 * 阴阳 char of YingYang
 	 */
 	public $cyy = ['阳', '阴'];
+
 	/**
 	 * 命局类型
 	 */
 	public $lx = ['命旺', '印重', '煞重', '财旺', '伤官'];
+
 	/**
 	 * 天干的五行屬性,01234分別代表:金水木火土
 	 */
 	public $wxtg = [2, 2, 3, 3, 4, 4, 0, 0, 1, 1];
+
 	/**
 	 * 地支的五行屬性,01234分別代表:金水木火土
 	 */
 	public $wxdz = [1, 4, 2, 2, 4, 3, 3, 4, 0, 0, 4, 1];
+
 	/**
 	 * 十神全称
 	 */
 	public $ssq = ['正印', '偏印', '比肩', '劫財', '傷官', '食神', '正財', '偏財', '正官', '偏官'];
+
 	/**
 	 * 十神缩写
 	 */
 	public $sss = ['印', '卩', '比', '劫', '伤', '食', '财', '才', '官', '杀'];
+
 	/**
 	 * 日干關聯其餘各干對應十神 Day Gan ShiShen
 	 */
@@ -117,6 +140,7 @@ class Calendar {
 		[1, 0, 9, 8, 7, 6, 5, 4, 2, 3],
 		[0, 1, 8, 9, 6, 7, 4, 5, 3, 2],
 	];
+
 	/**
 	 * 日干關聯各支對應十神 Day Zhi ShiShen
 	 */
@@ -134,10 +158,12 @@ class Calendar {
 		[7, 6, 5, 4, 2, 3, 1, 0, 9, 8],
 		[1, 0, 9, 8, 7, 6, 5, 4, 2, 3],
 	];
+
 	/**
 	 * 十二星座 char of XingZuo
 	 */
 	public $cxz = ['摩羯', '寶瓶', '雙魚', '白羊', '金牛', '雙子', '巨蟹', '獅子', '室女', '天平', '天蠍', '人馬'];
+
 	/**
 	 * 地支藏干表 支藏干
 	 */
@@ -155,36 +181,44 @@ class Calendar {
 		[4, 7, 3],
 		[8, 0, -1],
 	];
+
 	/**
 	 * 十二长生 char of ZhangSheng
 	 */
 	public $czs  = ['長生(強)', '沐浴(凶)', '冠帶(吉)', '臨官(大吉)', '帝旺(大吉)', '衰(弱)', '病(弱)', '死(凶)', '墓(吉)', '絕(凶)', '胎(平)', '養(平)'];
 	public $yyss = ['異', '同'];
 	public $sxss = ['生我', '同我', '我生', '我克', '克我'];
+
 	/**
 	 * 方位 char of FangWei
 	 */
 	public $cfw = ['　中　', '　北　', '北北東', '東北東', '　東　', '東南東', '南南東', '　南　', '南南西', '西南西', '　西　', '西北西', '北北西'];
+
 	/**
 	 * 四季 char of SiJi
 	 */
 	public $csj = ['旺四季', '　春　', '　夏　', '　秋　', '　冬　'];
+
 	/**
 	 * 天干的方位屬性 FangWei TianGan
 	 */
 	public $fwtg = [4, 4, 7, 7, 0, 0, 10, 10, 1, 1];
+
 	/**
 	 * 地支的方位屬性 FangWei DiZhi
 	 */
 	public $fwdz = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
 	/**
 	 * 天干的四季屬性 SiJi TianGan
 	 */
 	public $sjtg = [1, 1, 2, 2, 0, 0, 3, 3, 4, 4];
+
 	/**
 	 * 地支的四季屬性 SiJi DiZhi
 	 */
 	public $sjdz = [1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 1];
+
 	/**
 	 * 记录日志
 	 * @$string s
@@ -216,6 +250,7 @@ class Calendar {
 		}
 		return false;
 	}
+
 	/**
 	 * 將公历年月日時轉换爲儒略日历时间
 	 * @param  int         $yy
@@ -260,6 +295,7 @@ class Calendar {
 		$jd  = $jdy + $jdm + $jdd + $jdh + $init;
 		return $jd;
 	}
+
 	/**
 	 * 將儒略日轉换爲公历年月日時分秒
 	 * @param  float $jd
@@ -300,12 +336,13 @@ class Calendar {
 
 		return [$yy, $mm, $dd, $hh, $mmt, $ss];
 	}
+
 	/**
 	 * 驗證公历日期是否有效
-	 * @param  int       $yy
-	 * @param  int       $mm
-	 * @param  int       $dd
-	 * @return boolean
+	 * @param  int    $yy
+	 * @param  int    $mm
+	 * @param  int    $dd
+	 * @return bool
 	 */
 	public function ValidDate($yy, $mm, $dd) {
 		$vd = true;
@@ -336,11 +373,12 @@ class Calendar {
 		}
 		return $vd;
 	}
+
 	/**
 	 * 计算指定年(公历)的春分点(vernal equinox)理论值
 	 * 因地球在繞日运行時會因受到其他星球之影響而產生攝動(perturbation),必須將此現象產生的偏移量加入.
-	 * @param  int          $yy
-	 * @return false|number 返回儒略日历时间
+	 * @param  int         $yy
+	 * @return false|float 返回儒略日历时间
 	 */
 	private function VE($yy) {
 		$yx = intval($yy);
@@ -359,6 +397,7 @@ class Calendar {
 		}
 		return $jdve;
 	}
+
 	/**
 	 * 获取指定公历年的春分开始的24节气理论值
 	 * 大致原理是:把公转轨道进行24等分,每一等分为一个节气,此为理论值,再用摄动值(Perturbation)和固定参数DeltaT做调整得到实际值
@@ -410,6 +449,7 @@ class Calendar {
 		}
 		return $jdez;
 	}
+
 	/**
 	 * 地球在繞日运行時會因受到其他星球之影響而產生攝動(perturbation)
 	 * @param  float $jdez                                             Julian day
@@ -430,6 +470,7 @@ class Calendar {
 		$ptb = 0.00001 * $s / $l;
 		return $ptb;
 	}
+
 	/**
 	 * 求∆t
 	 * @param  int     $yy 公历年份
@@ -519,6 +560,7 @@ class Calendar {
 		$DeltaT = $dt / 60; //將秒轉換為分
 		return $DeltaT;
 	}
+
 	/**
 	 * 获取指定公历年對Perturbaton作調整後的自春分點開始的24節氣,可只取部份 (因此方法调用频繁,加上暂存)
 	 * @param  int   $yy
@@ -554,6 +596,7 @@ class Calendar {
 
 		return $jdjq;
 	}
+
 	/**
 	 * 求出自冬至點為起點的連續16個中氣
 	 * @param  int   $yy
@@ -577,6 +620,7 @@ class Calendar {
 		}
 		return $jdzq;
 	}
+
 	/**
 	 * 求出某公历年以立春點開始的不含中氣之12節
 	 * @param  int   $yy
@@ -600,6 +644,7 @@ class Calendar {
 		}
 		return $jdpjq;
 	}
+
 	/**
 	 * 對於指定日期時刻所屬的朔望月,求出其均值新月點的月序數
 	 * @param  float $jd
@@ -617,10 +662,11 @@ class Calendar {
 		//2451550.09765為2000年1月6日14時20分36秒，此為2000年後的第一個均值新月
 		return $k;
 	}
+
 	/**
 	 * 對於指定日期時刻所屬的朔望月,求出其均值新月點的JD值
-	 * @param  float    $jd
-	 * @return number
+	 * @param  float   $jd
+	 * @return float
 	 */
 	private function MeanNewMoonDay($jd) {
 		$jd = floatval($jd);
@@ -634,6 +680,7 @@ class Calendar {
 		//2451550.09765為2000年1月6日14時20分36秒，此為2000年後的第一個均值新月
 		return $thejd;
 	}
+
 	/**
 	 * 求出實際新月點
 	 * 以2000年初的第一個均值新月點為0點求出的均值新月點和其朔望月之序數k代入此副程式來求算實際新月點
@@ -703,6 +750,7 @@ class Calendar {
 		$tnm = $pt + $apt1 + $apt2;
 		return $tnm;
 	}
+
 	/**
 	 * 求算以含冬至中氣為陰曆11月開始的連續16個朔望月
 	 * @param  int     $yy 年份
@@ -737,6 +785,7 @@ class Calendar {
 		}
 		return $jdnm;
 	}
+
 	/**
 	 * 以比較日期法求算冬月及其餘各月名稱代碼，包含閏月，冬月為0，臘月為1，正月為2，餘類推。閏月多加0.5
 	 * @param int $yy
@@ -781,13 +830,14 @@ class Calendar {
 		}
 		return $mc;
 	}
+
 	/**
 	 * 将农历时间转换成公历时间
-	 * @param  int                        $yy
-	 * @param  int                        $mm
-	 * @param  int                        $dd
-	 * @param  boolean                    $ry   是否闰月
-	 * @return false/array(年,月,日)
+	 * @param  int         $yy
+	 * @param  int         $mm
+	 * @param  int         $dd
+	 * @param  boolean     $ry             是否闰月
+	 * @return false/array (年,月,日)
 	 */
 	public function Lunar2Solar($yy, $mm, $dd, $ry) {
 		//此為將陰曆日期轉換為陽曆日期的主程式
@@ -891,12 +941,13 @@ class Calendar {
 		}
 		return $er ? false : array_slice($this->Jtime($jdx), 0, 3);
 	}
+
 	/**
 	 * 将公历时间转换成农历时间
-	 * @param  int                                     $yy
-	 * @param  int                                     $mm
-	 * @param  int                                     $dd
-	 * @return false/array(年,月,日,是否闰月)
+	 * @param  int         $yy
+	 * @param  int         $mm
+	 * @param  int         $dd
+	 * @return false/array (年,月,日,是否闰月)
 	 */
 	public function Solar2Lunar($yy, $mm, $dd) {
 		$yy = intval($yy);
@@ -951,6 +1002,7 @@ class Calendar {
 
 		return [$yi, $mis, $dz, $ry];
 	}
+
 	/**
 	 * 计算公历的某天是星期几(PHP中的date方法,此处演示儒略日历的转换作用)
 	 * @param  int       $yy
@@ -970,6 +1022,7 @@ class Calendar {
 
 		return (((floor($spcjd + 1) % 7)) + 7) % 7; //模數(或餘數)為0代表星期日(因为西元前4713年1月1日12時为星期一).spcjd加1是因起始日為星期一
 	}
+
 	/**
 	 * 获取公历某个月有多少天
 	 * @param  int      $yy
@@ -994,12 +1047,13 @@ class Calendar {
 		$ndf  = $ndf1 + $ndf2;
 		return 30 + ((abs($mm - 7.5) + 0.5) % 2) - ($mm == 2) * (2 + $ndf);
 	}
+
 	/**
 	 * 获取农历某个月有多少天
-	 * @param  int            $yy
-	 * @param  int            $mm
-	 * @param  bool           $ry   是否闰月
-	 * @return false/number
+	 * @param  int         $yy
+	 * @param  int         $mm
+	 * @param  bool        $ry   是否闰月
+	 * @return false/int
 	 */
 	public function GetLunarDays($yy, $mm, $ry) {
 		$yy = intval($yy);
@@ -1069,10 +1123,11 @@ class Calendar {
 		}
 		return $er ? false : $dd;
 	}
+
 	/**
 	 * 获取农历某年的闰月,0为无闰月
-	 * @param  int      $yy
-	 * @return number
+	 * @param  int   $yy
+	 * @return int
 	 */
 	public function GetRunyue($yy) {
 		$yy = intval($yy);
@@ -1090,6 +1145,7 @@ class Calendar {
 		}
 		return max(0, $runyue - 2);
 	}
+
 	/**
 	 * 根据公历年月日精确计算星座下标
 	 * @param  int       $yy
@@ -1131,6 +1187,7 @@ class Calendar {
 		}
 		return $xz;
 	}
+
 	/**
 	 * 求出含某公历年立春點開始的24节气的儒略日历时间
 	 * @param  int   $yy
@@ -1153,15 +1210,16 @@ class Calendar {
 		}
 		return $jdpjq;
 	}
+
 	/**
 	 * 四柱計算,分早子时晚子时,传公历
-	 * @param  int                 $yy
-	 * @param  int                 $mm       [1-12]
-	 * @param  int                 $dd
-	 * @param  int                 hh
-	 * @param  int                 mt        分钟数(0-59),在跨节的时辰上会需要,有的排盘忽略跨节
-	 * @param  int                 ss        秒数(0-59)
-	 * @return false/array(天干, 地支)
+	 * @param  int         $yy
+	 * @param  int         $mm      [1-12]
+	 * @param  int         $dd
+	 * @param  int         hh
+	 * @param  int         mt       分钟数(0-59),在跨节的时辰上会需要,有的排盘忽略跨节
+	 * @param  int         ss       秒数(0-59)
+	 * @return false/array (天干, 地支)
 	 */
 	public function GetGZ($yy, $mm, $dd, $hh, $mt = 0, $ss = 0) {
 		$yy = floatval($yy);
@@ -1228,6 +1286,7 @@ class Calendar {
 
 		return [$tg, $dz];
 	}
+
 	/**
 	 * 根据年干支计算所有合法的月干支
 	 * @param  int   $ygz                       年柱干支代码
@@ -1245,6 +1304,7 @@ class Calendar {
 		}
 		return $mgz;
 	}
+
 	/**
 	 * 根据日干支计算所有合法的时干支
 	 * @param  int   $dgz                       日柱干支代码
@@ -1262,6 +1322,7 @@ class Calendar {
 		}
 		return $hgz;
 	}
+
 	/**
 	 * 根据一柱天干地支代码计算该柱的六十甲子代码
 	 * @param  int       $tg            天干代码
@@ -1289,6 +1350,7 @@ class Calendar {
 		}
 		return ((10 + $tg - $dz) % 10) / 2 * 12 + $dz;
 	}
+
 	/**
 	 * 根据八字干支查找对应的公历日期(GanZhi To GongLi),这里没有考虑早晚子时
 	 * @param int ygz
@@ -1391,6 +1453,7 @@ class Calendar {
 		}
 		return $ifs;
 	}
+
 	/**
 	 * 根据公历年月日计算命盘信息 fate:命运 map:图示
 	 * @param  int           $xb   性别0男1女
