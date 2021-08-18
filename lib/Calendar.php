@@ -1483,9 +1483,9 @@ class Calendar{
         $nzs = array(); //大运对应的十二长生
         $mgz = ((10 + $tg[1] - $dz[1]) % 10) / 2 * 12 + $dz[1]; //这里是根据天干地支代码计算月柱的六十甲子代码
         for ($k = 0; $k <= 8; $k++) { //求各階段的起迄歲數及該階段的大運
-            if (! is_array($rt['dy'][$k])) {
+            // if (! is_array($rt['dy'][$k])) {
                 $rt['dy'][$k] = array();
-            }
+            // }
             //求起迄歲
             $rt['dy'][$k]['zqage'] = $zqage[$k] = $qage + 1 + $k * 10; //求各階段的起始歲數
             $rt['dy'][$k]['zboz'] = $zboz[$k] = $qage + 1 + $k * 10 + 9; //求各階段的末端歲數
@@ -1518,12 +1518,13 @@ class Calendar{
         for ($j = 0; $j <= 89; $j++) {
             $k = intval($j / 10); //大运
             $i = $j % 10; //流年
-            if (! is_array($rt['dy'][$k]['ly'])) { //大运对应的流年
-                $rt['dy'][$k]['ly'] = array();
-            }
-            if (! is_array($rt['dy'][$k]['ly'][$i])) {
+            // if (! is_array($rt['dy'][$k]['ly'])) { //大运对应的流年
+            //     $rt['dy'][$k]['ly'] = array();
+            // }
+            // if (! is_array($rt['dy'][$k]['ly'][$i])) {
                 $rt['dy'][$k]['ly'][$i] = array();
-            }
+            // }
+
             //lyean[j]=(ygz + j + qage) % 10;
             $rt['dy'][$k]['ly'][$i]['age'] = $j + $qage + 1; //年龄(虚岁)
             $rt['dy'][$k]['ly'][$i]['year'] = $j + $qage + $jqyy; //流年(农历)
