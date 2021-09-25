@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="never" />
+<title>演示页面</title>
+<script>
+if(top != self){  
+	top.location.href = self.location.href;  
+}
+document.write("<script src='./js/jquery-3.6.0.min.js'><\/script>");
+document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
+<!-- document.write("<script src='./js/paipan.min.js?v="+Math.random()+"'><\/script>"); -->
+</script> 
+</head>
+<body>
+
+<div>
+公历时间:
+<br />
+<select id="yy" onchange="chg()" style="width:60px;"></select>年
+<select id="mm" onchange="chg()" style="width:50px;"></select>月
+<select id="dd" onchange="chg()" style="width:50px;"></select>日
+<select id="hh" onchange="chg()" style="width:50px;"></select>時
+<select id="mt" onchange="chg()" style="width:50px;"></select>分
+<select id="ss" onchange="chg()" style="width:50px;"></select>秒
+</div>
+
+<div>
+<textarea id='text' style="width:1000px;height:2000px;"></textarea>
+</div>
+
+<script>
+function chg(){
+	var yy = parseInt($("#yy").val());
+	var mm = parseInt($("#mm").val());
+	var dd = parseInt($("#dd").val());
+	var hh = parseInt($("#hh").val());
+	var mt = parseInt($("#mt").val());
+	var ss = parseInt($("#ss").val());
+	
+	$('#text').val('');
+	if(p.ValidDate(yy, mm, dd) === false){
+		$('#text').val("不存在此公历日期");
+		return false;
+	}
+	var txt = '';
+	txt += "输入的公历为:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n\n";
+	
+	var jd = p.Jdays(yy, mm, dd, hh, mt, ss);
+	txt += "对应的儒略日:"+jd+"\n\n";
+	
+	var [tg, dz] = p.GetGZ(yy, mm , dd, hh, mt, ss);
+	txt += "对应的干支历:"+p.ctg[tg[0]]+p.cdz[dz[0]]+p.ctg[tg[1]]+p.cdz[dz[1]]+p.ctg[tg[2]]+p.cdz[dz[2]]+p.ctg[tg[3]]+p.cdz[dz[3]]+"\n";
+	
+	var d = p.gz2gl(p.GZ(tg[0], dz[0]), p.GZ(tg[1], dz[1]), p.GZ(tg[2], dz[2]), p.GZ(tg[3], dz[3]), yy+1, 4); //往后查4个甲子
+	txt += "此后240年四柱相同的有:\n"
+	for(var i in d){
+		var kk = d[i][0];
+		var cc = d[i][1];
+		txt += kk[0]+"年"+kk[1]+"月"+kk[2]+"日"+kk[3]+"时"+kk[4]+"分"+kk[5]+"秒~"+cc[0]+"年"+cc[1]+"月"+cc[2]+"日"+cc[3]+"时"+cc[4]+"分"+cc[5]+"秒\n";
+	}
+	txt += "\n";
+	
+	var d = p.Solar2Lunar(yy, mm, dd);
+	var y = d[0].toString().split("");
+	var s = '';
+	for(var i=0; i<y.length; i++){
+		s += p.dxs[y[i]];
+	}
+	txt += "对应的农历为:"+s+"年"+(d[3]?'闰':'')+p.dxy[d[1]-1]+p.dxd[d[2]-1]+"\n\n";
+	
+	var runyue = p.GetRunyue(d[0]);
+	txt += "农历"+s+"年"+(runyue ? ("闰"+runyue+"月") : "无闰月")+"\n\n";
+	txt += "星期:"+p.wkd[p.GetWeek(yy, mm , dd)]+"\n\n";
+	txt += "星座:"+p.cxz[p.GetXZ(yy, mm , dd, hh, mt, ss)]+"\n\n";
+	
+	txt += "此年("+yy+")公历:\n";
+	for(var i=1; i<=12; i++){
+		txt += ""+i+"月:"+p.GetSolarDays(yy, i)+"天;";
+	}
+	txt += "\n\n";
+	
+	txt += "此年("+s+")农历:\n";
+	for(var i=1; i<=12; i++){
+		txt += ""+p.dxy[i-1]+":"+p.GetLunarDays(d[0], i, false)+"天;";
+		if(i == runyue){
+			txt += "闰"+p.dxy[i-1]+":"+p.GetLunarDays(d[0], i, true)+"天;";
+		}
+	}
+	txt += "\n\n";
+	
+	txt += "廿四节气:\n";
+	var jq = p.Get24JQ(yy);
+	for(var i in jq){
+		var d = p.Jtime(jq[i]);
+
+		txt += p.jq[(parseInt(i)+21)%24] + ":" +d[0]+"年"+d[1]+"月"+d[2]+"日"+d[3]+"时"+d[4]+"分"+d[5]+"秒"+"\n";
+	}
+	txt += "\n";
+	
+	$('#text').val(txt);
+}
+</script>
+<script>
+$(function(){
+	for(var i=1949; i<=2049; i++){
+		$('#yy').append("<option value='"+i+"'>"+i+"</option>");
+	}
+	for(var i=1; i<=12; i++){
+		$('#mm').append("<option value='"+i+"'>"+i+"</option>");
+	}
+	for(var i=1; i<=31; i++){
+		$('#dd').append("<option value='"+i+"'>"+i+"</option>");
+	}
+	for(var i=0; i<=23; i++){
+		$('#hh').append("<option value='"+i+"'>"+i+"</option>");
+	}
+	for(var i=0; i<=59; i++){
+		$('#mt').append("<option value='"+i+"'>"+i+"</option>");
+	}
+	for(var i=0; i<=59; i++){
+		$('#ss').append("<option value='"+i+"'>"+i+"</option>");
+	}
+	
+	var d = new Date();
+	$("#yy").val(d.getFullYear());
+	$("#mm").val(d.getMonth()+1);
+	$("#dd").val(d.getDate());
+	$("#hh").val(d.getHours());
+	$("#mt").val(d.getMinutes());
+	$("#ss").val(d.getSeconds());
+	
+	chg();
+});
+</script>
+</body>
+</html>
