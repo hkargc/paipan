@@ -1603,7 +1603,7 @@ function paipan() {
             }
             //lyean[j]=(ygz + j + qage) % 10;
             rt['dy'][k]['ly'][i]['age'] = j + qage + 1; //年龄(虚岁)
-            rt['dy'][k]['ly'][i]['year'] = j + qage + jqyy; //流年(农历)
+            rt['dy'][k]['ly'][i]['year'] = j + qage + ty; //流年(农历)
             rt['dy'][k]['ly'][i]['lyean'] = lyean[j] = (tg[0] + j + qage) % 10; //流年天干
             rt['dy'][k]['ly'][i]['lyebn'] = lyebn[j] = (dz[0] + j + qage) % 12; //流年地支
             rt['dy'][k]['ly'][i]['lye'] = lye[j] = this.ctg[lyean[j]] + this.cdz[lyebn[j]]; //取流年所對應的干支文字
