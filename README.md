@@ -53,8 +53,8 @@ p.GetGZ(yy, mm, dd, hh, mt, ss);<br />
 干支历转(搜索)公历:<br />
 p.gz2gl(ygz, mgz, dgz, hgz, yeai, mx);<br />
 
-根据公历进行八字排盘<br />
-p.fatemaps(xb, yy, mm, dd, hh, mt, ss);<br />
+根据公历进行八字真太阳时排盘<br />
+p.fatemaps(xb, yy, mm, dd, hh, mt, ss, 80);<br />
 
 //引申出来的方法<br />
 p.ValidDate(yy, mm, dd);<br />
