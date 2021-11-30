@@ -9,6 +9,9 @@ if(top != self){
 	top.location.href = self.location.href;  
 }
 document.write("<script src='./js/jquery-3.6.0.min.js'><\/script>");
+document.write("<script src='./js/J.js?v="+Math.random()+"'><\/script>"); //全国经度数据,来源于寿星万年历
+document.write("<script src='./js/infinity.js?v="+Math.random()+"'><\/script>"); //无限级选择
+
 document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 <!-- document.write("<script src='./js/paipan.min.js?v="+Math.random()+"'><\/script>"); -->
 </script> 
@@ -16,7 +19,7 @@ document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 <body>
 
 <div>
-公历时间:
+公历北京时间:
 <br />
 <select id="yy" onchange="chg()" style="width:60px;"></select>年
 <select id="mm" onchange="chg()" style="width:50px;"></select>月
@@ -24,6 +27,8 @@ document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 <select id="hh" onchange="chg()" style="width:50px;"></select>時
 <select id="mt" onchange="chg()" style="width:50px;"></select>分
 <select id="ss" onchange="chg()" style="width:50px;"></select>秒
+
+<span id="city"></span>
 </div>
 
 <div>
@@ -32,6 +37,13 @@ document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 
 <script>
 function chg(){
+
+	var id = inf.get();
+	if((id == 0) || (J[id] == undefined)){
+		$('#text').val("请选择城市!");
+		return false;
+	}
+	var j = J[id];
 	var yy = parseInt($("#yy").val());
 	var mm = parseInt($("#mm").val());
 	var dd = parseInt($("#dd").val());
@@ -44,8 +56,14 @@ function chg(){
 		$('#text').val("不存在此公历日期");
 		return false;
 	}
+	
+	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss, j[2]+j[3]/60); //此处演示真太阳时排盘
+
 	var txt = '';
-	txt += "输入的公历为:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n\n";
+	txt += "公历北京时间为:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n\n";
+	txt += "本地平太阳时为:"+fm['pty'][0]+"年"+fm['pty'][1]+"月"+fm['pty'][2]+"日"+fm['pty'][3]+"时"+fm['pty'][4]+"分"+fm['pty'][5]+"秒"+"\n\n";
+	txt += "本地真太阳时为:"+fm['zty'][0]+"年"+fm['zty'][1]+"月"+fm['zty'][2]+"日"+fm['zty'][3]+"时"+fm['zty'][4]+"分"+fm['zty'][5]+"秒"+"\n\n";
+	txt += "真太阳时八字为:"+p.ctg[fm.tg[0]]+p.cdz[fm.dz[0]]+p.ctg[fm.tg[1]]+p.cdz[fm.dz[1]]+p.ctg[fm.tg[2]]+p.cdz[fm.dz[2]]+p.ctg[fm.tg[3]]+p.cdz[fm.dz[3]]+"\n\n";
 	
 	var jd = p.Jdays(yy, mm, dd, hh, mt, ss);
 	txt += "对应的儒略日:"+jd+"\n\n";
@@ -131,6 +149,9 @@ $(function(){
 	$("#mt").val(d.getMinutes());
 	$("#ss").val(d.getSeconds());
 	
+	inf = new infinity();
+	inf.init('city', J, 2, chg);
+		
 	chg();
 });
 </script>
