@@ -7,13 +7,13 @@
  */
 function paipan() {
 	/**
-	 * 标准时间发出地经度,用于计算本地平太阳时
+	 * 标准时间发出地经度(角度表示),北京时间所在经度为120度0分
 	 */
-	this.J = 120; 
+	this.J = 120;
 	/**
-	 * 标准时间所在时区TimeZone,北京时间为+8,表示比UT时间早8小时 -1 * (new Date()).getTimezoneOffset()/60
+	 * 当地经度(角度表示),东经120度25分为: 120 + 25/60;
 	 */
-	this.TZ = 8;
+	this.j = null;
     /**
      * 四柱是否区分 早晚子 时,true则23:00-24:00算成上一天
      */
@@ -427,10 +427,12 @@ function paipan() {
 	/**
 	 * 根据标准时间计算真太阳时,采用低精度算法计算时差,误差约在1秒以内
 	 * @param jd 标准时间jd值
-	 * @param j 经度(角度表示),东经120度25分为: 120 + 25/60;
 	 */
-	this.zty = function(jd, j) { //时差计算(低精度),误差约在1秒以内
-		var jd = jd - this.TZ / 24; //转为格林尼治UT时间
+	this.zty = function(jd) {
+		if(this.j === null){
+			return jd;
+		}
+		var jd = jd - this.J / 360; //转为格林尼治UT时间
 		var jd2 = jd - 2451545 + this.dt_T(jd) / 86400; //力学时
 		var t = jd2 / 36525; //力学时儒略世纪数
 
@@ -448,7 +450,7 @@ function paipan() {
 		L = this.rad2rrad(L - r[0]);
 		var d = L / Math.PI / 2; //单位是周(天)
 
-		return jd + d + this.floatval(j) / 360;
+		return jd + d + this.floatval(this.j) / 360;
 	};
     /**
      * 將公历時间轉换爲儒略日
@@ -764,7 +766,8 @@ function paipan() {
 			var ptb = this.Perturbation(jdez[i]); //取得受perturbation影響所需微調
 			var dt = this.DeltaT(yy, Math.floor(i / 2) + 3); //修正dynamical time to Universal time
 			jdjq[i] = jdez[i] + ptb - dt / 60 / 24; //加上攝動調整值ptb得到動態時間dynamical time or ephemeris days，減去對應的Delta T值(分鐘轉換為日)得到True Universal time
-			jdjq[i] = jdjq[i] + this.TZ / 24; //因中國時間比格林威治時間先行8小時，即1/3日(东经120度)
+			jdjq[i] = jdjq[i] + this.J / 360; //因中國時間比格林威治時間先行8小時，即1/3日(东经120度)
+			jdjq[i] = this.zty(jdjq[i]); //是否需要转为真太阳时呢?年支以立春为界
 		}
 
         return jdjq;
@@ -908,7 +911,7 @@ function paipan() {
     };
     /**
      * 求算以含冬至中氣為陰曆11月開始的連續16個朔望月
-     * @param int yy 年份
+     * @param int yy 公历年份
      * @return array
      */
     this.GetSMsinceWinterSolstice = function(yy) {
@@ -926,7 +929,7 @@ function paipan() {
         kn = this.MeanNewMoon(spcjd); //求得自2000年1月起第kn個平均朔望日及其JD值
         for (i = 0; i <= 19; i++) { //求出連續20個朔望月
             k = kn + i;
-            tjd[i] = this.TrueNewMoon(k) + this.TZ / 24; //以k值代入求瞬時朔望日,因中國比格林威治先行8小時，加1/3天 (东经120度)
+            tjd[i] = this.TrueNewMoon(k) + 8 / 24; //以k值代入求瞬時朔望日,因中國比格林威治先行8小時，加1/3天 (农历为中华文化,无需做真太阳时调整)
             //下式為修正dynamical time to Universal time
             tjd[i] = tjd[i] - this.DeltaT(yy, i - 1) / 1440; //1為1月，0為前一年12月，-1為前一年11月(當i=0時，i-1=-1，代表前一年11月)
         }
@@ -935,9 +938,40 @@ function paipan() {
                 break;
             } //已超過冬至中氣(比較日期法)
         }
+		var XFu = { //修复 XiuFu 使农历1800年后与寿星万年历匹配
+			1796:{6:-243},
+			1804:{8:-369},
+			1831:{4:-120},
+			1842:{1:-963},
+			1863:{1:-166},
+			1880:{11:352},
+			1896:{2:-810},
+			1914:{12:-161},
+			1916:{2:-374},
+			1920:{11:-348},
+			2372:{2:62},
+			2498:{2:95},
+			2550:{7:76},
+			2583:{2:108},
+			2668:{4:186},
+			2729:{13:64},
+			2730:{0:64},
+			2794:{4:87},
+			2801:{13:176},
+			2802:{1:175},
+			2809:{10:189},
+			2842:{10:273},
+			2849:{8:242},
+			2860:{9:197},
+			2866:{7:64},
+			2874:{10:143}
+		};
         var jj = j; //取此時的索引值
         for (k = 0; k <= 15; k++) {
             jdnm[k] = tjd[jj - 1 + k]; //重排索引，使含冬至朔望月的索引為0
+			if(XFu[yy] && XFu[yy][k]){
+				jdnm[k] += XFu[yy][k] / 86400;
+			}
         }
         return jdnm;
     };
@@ -1009,7 +1043,6 @@ function paipan() {
         }
         if (yy < -1000 || yy > 3000) { //適用於西元-1000年至西元3000年,超出此範圍誤差較大
             this.logs(1);
-            return false;
         }
         sjd = this.GetSMsinceWinterSolstice(yy); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
         mc = this.GetZQandSMandLunarMonthCode(yy);
@@ -1104,7 +1137,6 @@ function paipan() {
         }
         if (yy < -1000 || yy > 3000) { //適用於西元-1000年至西元3000年,超出此範圍誤差較大
             this.logs(1);
-            return false;
         }
         //驗證輸入日期的正確性,若不正確則跳離
         if (this.ValidDate(yy, mm, dd) === false) {
@@ -1208,7 +1240,6 @@ function paipan() {
         }
         if (yy < -1000 || yy > 3000) { //適用於西元-1000年至西元3000年,超出此範圍誤差較大
             this.logs(1);
-            return false;
         }
         sjd = this.GetSMsinceWinterSolstice(yy); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
         mc = this.GetZQandSMandLunarMonthCode(yy);
@@ -1516,7 +1547,6 @@ function paipan() {
 
         if (yeai < -1000 || yeaf > 3000) { //說明大誤差區域:適用於西元-1000年至西元3000年,超出此範圍誤差較大
             this.logs(1);
-            return false;
         }
 
         var ifs = new Array(); //initial-final 返回一个含起止时间的数组
@@ -1564,7 +1594,7 @@ function paipan() {
     /**
      * 根据公历年月日计算命盘信息 fate:命运 map:图示
      * @param int xb 性别0男1女
-     * @param int yy 年份.默认传的是this.TZ对应的时间
+     * @param int yy 年份.确保传的是this.J对应的时间
      * @param int mm 月份(1-12)
      * @param int dd 日期(1-31)
      * @param int hh 时间(0-23)
@@ -1585,7 +1615,6 @@ function paipan() {
         //說明大誤差區域
         if (yy < -1000 || yy > 3000) { //適用於西元-1000年至西元3000年,超出此範圍誤差較大
             this.logs(1);
-            return false;
         }
 
         var spcjd = this.Jdays(yy, mm, dd, hh, mt, ss); //special jd,这里依然是标准时间,即this.J处的平太阳时
@@ -1594,12 +1623,14 @@ function paipan() {
         }
 		
 		var rt = new Array(); //要返回的数组 return
-
-		if(j !== undefined){ //需要转地方真太阳时
+		
+		if(j !== undefined){ //有传参,需要转地方真太阳时
+			this.j = j; //转为全局变量
+			
 			rt['pty'] = spcjd + (this.floatval(j) - this.J) * 4 * 60 / 86400; //计算地方平太阳时,每经度时差4分钟
 			rt['pty'] = this.Jtime(rt['pty']); //地方平太阳时
 
-			spcjd = this.zty(spcjd, j); //采用真太阳时排盘,这里有点疑问: 对应的廿四节气的计算是否也要转为真太阳时呢?
+			spcjd = this.zty(spcjd); //采用真太阳时排盘,这里有点疑问: 对应的廿四节气的计算是否也要转为真太阳时呢?
 			rt['zty'] = this.Jtime(spcjd); //地方真太阳时
 		}
 		
