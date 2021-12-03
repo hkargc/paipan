@@ -3,6 +3,8 @@ PHP JavaScript 农历公历干支历互转,万年历,四柱,六十甲子,属相,
 算法原理和JS源码完全来自: http://www.bieyu.com/<br />
 真太阳时模块来自: http://www.nongli.net/sxwnl/<br />
 
+演示地址: https://hkargv.github.io/paipan/ <br />
+
 此工具类包含:<br />
 1,儒略日历<br />
 以公元前4713年1月1日12时为起点,每天(每廿四小时)加一的历法;<br />
