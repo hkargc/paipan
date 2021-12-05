@@ -704,8 +704,7 @@ class paipan{
             $ptb = $this->Perturbation($jdez[$i]); //取得受perturbation影響所需微調
             $dt = $this->DeltaT($yy, floor($i / 2) + 3); //修正dynamical time to Universal time
             $jdjq[$i] = $jdez[$i] + $ptb - $dt / 60 / 24; //加上攝動調整值ptb，減去對應的Delta T值(分鐘轉換為日)
-            $jdjq[$i] = $jdjq[$i] + $this->J / 360; //因中國時間比格林威治時間先行8小時，即1/3日(东经120度)
-            $jdjq[$i] = $this->zty($jdjq[$i]); //是否需要转为真太阳时呢?年支以立春为界
+            $jdjq[$i] = $jdjq[$i] + 8 / 24; //因中國時間比格林威治時間先行8小時，即1/3日(由于农历基于此数据,此处必须为北京时间)
         }
         
         return $jdjq;
@@ -868,7 +867,7 @@ class paipan{
                 break;
             } //已超過冬至中氣(比較日期法)
         }
-        $XFu = array( //修复 XiuFu 使农历1800年后与寿星万年历匹配
+        $XFu = array( //修复 XiuFu 使农历1800年至2900年与寿星万年历匹配
             1796 => [6 => -243],
             1804 => [8 => -369],
             1831 => [4 => -120],
