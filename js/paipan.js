@@ -11,13 +11,13 @@ function paipan() {
 	 */
 	this.J = 120;
 	/**
-	 * 当地经度(角度表示),东经120度25分为: 120 + 25/60;
+	 * 缓存每年的节气计算结果
 	 */
-	this.j = null;
+	this.JQ = new Array();
     /**
      * 四柱是否区分 早晚子 时,true则23:00-24:00算成上一天
      */
-    this.zwz = true;
+    this.zwz = false;
     /**
      * 均值朔望月長 synodic month (new Moon to new Moon)
      */
@@ -427,9 +427,10 @@ function paipan() {
 	/**
 	 * 根据标准时间计算真太阳时,采用低精度算法计算时差,误差约在1秒以内
 	 * @param jd 标准时间jd值
+	 * @param j 当地经度(角度表示),东经120度25分为: 120 + 25/60;
 	 */
-	this.zty = function(jd) {
-		if(this.j === null){
+	this.zty = function(jd, j) {
+		if(j === undefined){
 			return jd;
 		}
 		var jd = jd - this.J / 360; //转为格林尼治UT时间
@@ -450,7 +451,7 @@ function paipan() {
 		L = this.rad2rrad(L - r[0]);
 		var d = L / Math.PI / 2; //单位是周(天)
 
-		return jd + d + this.floatval(this.j) / 360;
+		return jd + d + this.floatval(j) / 360;
 	};
     /**
      * 將公历時间轉换爲儒略日
@@ -592,14 +593,10 @@ function paipan() {
      * 获取指定公历年的春分开始的24节气理论值
      * 大致原理是:把公转轨道进行24等分,每一等分为一个节气,此为理论值,再用摄动值(Perturbation)和固定参数DeltaT做调整得到实际值
      * @param int yy
-     * @param int ini 从0开始
-     * @param int num 1-24,若超过则有几秒的误差
-     * @return array 下标从ini+1开始的数组
+     * @return array 下标从0开始的数组
      */
-    this.MeanJQJD = function(yy, ini, num) {
+    this.MeanJQJD = function(yy) {
         var yy = this.intval(yy);
-        var ini = this.intval(ini);
-        var num = this.intval(num);
 
         var jdez = new Array();
         var jdve = this.VE(yy);
@@ -613,7 +610,7 @@ function paipan() {
         var rvp = vp * 2 * Math.PI / 360;
         var peri = new Array(30);
         var i;
-        for (i = 1; i <= (ini + num); i++) {
+        for (i = 1; i <= 24; i++) {
             var flag = 0;
             var th = ath * (i - 1) + rvp;
             if (th > Math.PI && th <= 3 * Math.PI) {
@@ -635,8 +632,8 @@ function paipan() {
             }
             peri[i] = f;
         }
-        for (i = (ini + 1); i <= (ini + num); i++) {
-            jdez[i] = jdve + peri[i] - peri[1];
+        for (i = 1; i <= 24; i++) {
+            jdez[i - 1] = jdve + peri[i] - peri[1];
         }
         return jdez;
     };
@@ -749,26 +746,28 @@ function paipan() {
         return dt / 60; //將秒轉換為分
     };
     /**
-     * 获取指定公历年對Perturbaton作調整後的自春分點開始的24節氣,可只取部份
+     * 获取指定公历年對Perturbaton作調整後的自春分點開始的24節氣
      * @param int yy
-     * @param int ini 0-23
-     * @param int num 1-24 取的个数
-     * @return array this.jq[(i-1)%24] 注意下标从ini+1开始
+     * @return array this.jq[i%24]
      */
-    this.GetAdjustedJQ = function(yy, ini, num) {
+    this.GetAdjustedJQ = function(yy) {
         var yy = this.intval(yy);
-        var ini = this.intval(ini);
-        var num = this.intval(num);
-
+		
+		if(this.JQ && this.JQ[yy]){
+			return this.JQ[yy];
+		}
+		
         var jdjq = new Array();
-		var jdez = this.MeanJQJD(yy, ini, num); //輸入指定年,求該回歸年各節氣点
-		for (var i = (ini + 1); i <= (ini + num); i++) {
+		var jdez = this.MeanJQJD(yy); //輸入指定年,求該回歸年各節氣点
+		for (var i = 0; i < 24; i++) {
 			var ptb = this.Perturbation(jdez[i]); //取得受perturbation影響所需微調
-			var dt = this.DeltaT(yy, Math.floor(i / 2) + 3); //修正dynamical time to Universal time
+			var dt = this.DeltaT(yy, Math.ceil(i / 2) + 3); //修正dynamical time to Universal time
 			jdjq[i] = jdez[i] + ptb - dt / 60 / 24; //加上攝動調整值ptb得到動態時間dynamical time or ephemeris days，減去對應的Delta T值(分鐘轉換為日)得到True Universal time
 			jdjq[i] = jdjq[i] + 8 / 24; //因中國時間比格林威治時間先行8小時，即1/3日(由于农历基于此数据,此处必须为北京时间)
 		}
-
+		
+		this.JQ[yy] = jdjq;
+		
         return jdjq;
     };
     /**
@@ -783,15 +782,18 @@ function paipan() {
 
         //求出以冬至為起點之連續16個中氣（多取四個以備用）
         var dj = new Array(26);
-        dj = this.GetAdjustedJQ(yy - 1, 18, 5); //求出指定年冬至開始之節氣JD值,以前一年的值代入
+        dj = this.GetAdjustedJQ(yy - 1); //求出指定年冬至開始之節氣JD值,以前一年的值代入
         //轉移春分前之節氣至jdzq變數中，以重整index
-        jdzq[0] = dj[19]; //此為冬至中氣
-        jdzq[1] = dj[21]; //此為大寒中氣
-        jdzq[2] = dj[23]; //此為雨水中氣
-        dj = this.GetAdjustedJQ(yy, 0, 26); //求出指定年節氣之JD值
-        for (var i = 1; i <= 13; i++) {
-            jdzq[i + 2] = dj[2 * i - 1]; //轉移冬至後之節氣至jdzq變數中，以重整index
+        jdzq[0] = dj[18]; //此為冬至中氣
+        jdzq[1] = dj[20]; //此為大寒中氣
+        jdzq[2] = dj[22]; //此為雨水中氣
+        dj = this.GetAdjustedJQ(yy); //求出指定年節氣之JD值
+        for (var i = 0; i < 12; i++) {
+            jdzq[i + 3] = dj[2 * i]; //轉移春分後之節氣至jdzq變數中，以重整index
         }
+		dj = this.GetAdjustedJQ(yy + 1); //求出指定年節氣之JD值
+		jdzq[15] = dj[0]; //此為春分中氣
+		
         return jdzq;
     };
     /**
@@ -803,19 +805,19 @@ function paipan() {
         var yy = this.intval(yy);
 
         var jdpjq = new Array();
-        var sjdjq = new Array();
-        var yea = yy - 1;
-        sjdjq = this.GetAdjustedJQ(yea, 21, 3); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
+        var sjdjq = this.GetAdjustedJQ(yy - 1); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
         //轉移春分前之立春至驚蟄之節氣至jdpjq變數中，以重整index
-        jdpjq[0] = sjdjq[22]; //此為立春
-        jdpjq[1] = sjdjq[24]; //此為驚蟄
-        yea = yy;
-        sjdjq = this.GetAdjustedJQ(yea, 0, 26); //求出指定年節氣之JD值,從驚蟄開始，到雨水
-        //轉移春分至小寒之節氣至jdpjq變數中，以重整index
-        for (var i = 1; i <= 13; i++) {
-            jdpjq[i + 1] = sjdjq[2 * i];
-        }
+        jdpjq[0] = sjdjq[21]; //此為立春
+        jdpjq[1] = sjdjq[23]; //此為驚蟄
 
+        sjdjq = this.GetAdjustedJQ(yy); //求出指定年節氣之JD值,從清明開始，到惊蛰
+        for (var i = 0; i < 12; i++) {
+            jdpjq[i + 2] = sjdjq[2 * i + 1];
+        }
+		
+		sjdjq = this.GetAdjustedJQ(yy + 1);
+        jdpjq[14] = sjdjq[1]; //此為清明
+		
         return jdpjq;
     };
     /**
@@ -905,8 +907,7 @@ function paipan() {
         apt2 += 0.000037 * Math.sin((Math.PI / 180) * (161.72 + 24.198154 * k));
         apt2 += 0.000035 * Math.sin((Math.PI / 180) * (239.56 + 25.513099 * k));
         apt2 += 0.000023 * Math.sin((Math.PI / 180) * (331.55 + 3.592518 * k));
-        var tnm = pt + apt1 + apt2;
-        return tnm;
+        return pt + apt1 + apt2;
     };
     /**
      * 求算以含冬至中氣為陰曆11月開始的連續16個朔望月
@@ -921,8 +922,8 @@ function paipan() {
             i, k;
         var spcjd, phase, kn;
 
-        var dj = this.GetAdjustedJQ(yy - 1, 18, 1); //求出指定年冬至開始之節氣JD值,以前一年的值代入
-        var jdws = dj[19]; //此為冬至中氣
+        var dj = this.GetAdjustedJQ(yy - 1); //求出指定年冬至開始之節氣JD值,以前一年的值代入
+        var jdws = dj[18]; //此為冬至中氣
 
         spcjd = this.Jdays(yy - 1, 11, 0, 0); //求年初前兩個月附近的新月點(即前一年的11月初)
         kn = this.MeanNewMoon(spcjd); //求得自2000年1月起第kn個平均朔望日及其JD值
@@ -937,33 +938,16 @@ function paipan() {
                 break;
             } //已超過冬至中氣(比較日期法)
         }
-		var XFu = { //修复 XiuFu 使农历1800年至2900年与寿星万年历匹配
-			1796:{6:-243},
-			1804:{8:-369},
-			1831:{4:-120},
-			1842:{1:-963},
-			1863:{1:-166},
-			1880:{11:352},
-			1896:{2:-810},
-			1914:{12:-161},
-			1916:{2:-374},
-			1920:{11:-348},
-			2372:{2:62},
-			2498:{2:95},
-			2550:{7:76},
-			2583:{2:108},
-			2668:{4:186},
-			2729:{13:64},
-			2730:{0:64},
-			2794:{4:87},
-			2801:{13:176},
-			2802:{1:175},
-			2809:{10:189},
-			2842:{10:273},
-			2849:{8:242},
-			2860:{9:197},
-			2866:{7:64},
-			2874:{10:143}
+		var XFu = { //修复 XiuFu 使农历1800年至2300年与寿星万年历匹配
+			1804:{8:-310},
+			1831:{4:-61},
+			1842:{1:-904},
+			1863:{1:-107},
+			1880:{11:293},
+			1896:{2:-751},
+			1914:{12:-102},
+			1916:{2:-315},
+			1920:{11:-289}
 		};
         var jj = j; //取此時的索引值
         for (k = 0; k <= 15; k++) {
@@ -1344,30 +1328,6 @@ function paipan() {
         return xz;
     };
     /**
-     * 求出含某公历年立春點開始的24节气的儒略日历时间
-     * @param int yy
-     * @return array this.jq[(i+21)%24]
-     */
-    this.Get24JQ = function(yy) {
-        var yy = this.intval(yy);
-
-        var jdpjq = new Array();
-        var sjdjq = new Array();
-        var yea = yy - 1;
-        sjdjq = this.GetAdjustedJQ(yea, 21, 3); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
-        //轉移春分前之立春至驚蟄之節氣至jdpjq變數中，以重整index
-        jdpjq[0] = sjdjq[22]; //此為立春
-        jdpjq[1] = sjdjq[23]; //此為雨水
-        jdpjq[2] = sjdjq[24]; //此為驚蟄
-        yea = yy;
-        sjdjq = this.GetAdjustedJQ(yea, 0, 21); //求出指定年節氣之JD值,從春分開始，到大寒
-        //轉移春分至大寒之節氣至jdpjq變數中，以重整index
-        for (var i = 1; i <= 21; i++) {
-            jdpjq[i + 2] = sjdjq[i];
-        }
-        return jdpjq;
-    };
-    /**
      * 四柱計算,分早子时晚子时,传公历
      * @param int yy
      * @param int mm [1-12]
@@ -1624,12 +1584,10 @@ function paipan() {
 		var rt = new Array(); //要返回的数组 return
 		
 		if(j !== undefined){ //有传参,需要转地方真太阳时
-			this.j = j; //转为全局变量
-			
 			rt['pty'] = spcjd + (this.floatval(j) - this.J) * 4 * 60 / 86400; //计算地方平太阳时,每经度时差4分钟
 			rt['pty'] = this.Jtime(rt['pty']); //地方平太阳时
 
-			spcjd = this.zty(spcjd); //采用真太阳时排盘,这里有点疑问: 对应的廿四节气的计算是否也要转为真太阳时呢?
+			spcjd = this.zty(spcjd, j); //采用真太阳时排盘,这里有点疑问: 对应的廿四节气的计算是否也要转为真太阳时呢?
 			rt['zty'] = this.Jtime(spcjd); //地方真太阳时
 		}
 		

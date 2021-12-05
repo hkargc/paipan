@@ -11,9 +11,9 @@ class paipan{
      */
     private $J = 120;
     /**
-     * 当地经度(角度表示),东经120度25分为: 120 + 25/60;
+     * 缓存每年的节气计算结果
      */
-    private $j = null;
+    private $JQ = [];
     /**
      * 均值朔望月長 synodic month (new Moon to new Moon)
      */
@@ -367,9 +367,10 @@ class paipan{
     /**
      * 根据标准时间计算真太阳时,采用低精度算法计算时差,误差约在1秒以内
      * @param float $jd 标准时间jd值
+     * @param float $j 当地经度(角度表示),东经120度25分为: 120 + 25/60;
      */
-    public function zty($jd) {
-        if($this->j === null){
+    public function zty($jd, $j=null) {
+        if($j === null){
             return $jd;
         }
         $jd = $jd - $this->J / 360; //转为格林尼治UT时间
@@ -390,7 +391,7 @@ class paipan{
         $L = $this->rad2rrad($L - $r[0]);
         $d = $L / M_PI / 2; //单位是周(天)
         
-        return $jd + $d + floatval($this->j) / 360;
+        return $jd + $d + floatval($j) / 360;
     }
     /**
      * 將公历年月日時轉换爲儒略日历时间
@@ -532,14 +533,10 @@ class paipan{
      * 获取指定公历年的春分开始的24节气理论值
      * 大致原理是:把公转轨道进行24等分,每一等分为一个节气,此为理论值,再用摄动值(Perturbation)和固定参数DeltaT做调整得到实际值
      * @param int $yy
-     * @param int $ini 从0开始
-     * @param int $num 1-24,若超过则有几秒的误差
-     * @return array 下标从ini+1开始的数组
+     * @return array 下标从0开始的数组
      */
-    private function MeanJQJD($yy, $ini, $num) {
+    private function MeanJQJD($yy) {
         $yy = intval($yy);
-        $ini = intval($ini);
-        $num = intval($num);
         
         $jdez = array();
         $jdve = $this->VE($yy);
@@ -552,7 +549,7 @@ class paipan{
         $vp = 111.25586939 - 17.0119934518333 * $tt - 0.044091890166673 * $tt * $tt - 4.37356166661345E-04 * $tt * $tt * $tt + 8.16716666602386E-06 * $tt * $tt * $tt * $tt;
         $rvp = $vp * 2 * M_PI / 360;
         $peri = array();
-        for ($i = 1; $i <= ($ini + $num); $i++) {
+        for ($i = 1; $i <= 24; $i++) {
             $flag = 0;
             $th = $ath * ($i - 1) + $rvp;
             if ($th > M_PI && $th <= 3 * M_PI) {
@@ -574,8 +571,8 @@ class paipan{
             }
             $peri[$i] = $f;
         }
-        for ($i = ($ini + 1); $i <= ($ini + $num); $i++) {
-            $jdez[$i] = $jdve + $peri[$i] - $peri[1];
+        for ($i = 1; $i <= 24; $i++) {
+            $jdez[$i - 1] = $jdve + $peri[$i] - $peri[1];
         }
         return $jdez;
     }
@@ -687,25 +684,27 @@ class paipan{
         return $dt / 60; //將秒轉換為分
     }
     /**
-     * 获取指定公历年對Perturbaton作調整後的自春分點開始的24節氣,可只取部份
+     * 获取指定公历年對Perturbaton作調整後的自春分點開始的24節氣
      * @param int $yy
-     * @param int $ini 0-23
-     * @param int $num 1-24 取的个数
-     * @return array $this->jq[(i-1)%24] 注意下标从ini+1开始
+     * @return array $this->jq[i%24]
      */
-    public function GetAdjustedJQ($yy, $ini, $num) {
+    public function GetAdjustedJQ($yy) {
         $yy = intval($yy);
-        $ini = intval($ini);
-        $num = intval($num);
+        
+        if($this->JQ && $this->JQ[$yy]){
+            return $this->JQ[$yy];
+        }
         
         $jdjq = array();
-        $jdez = $this->MeanJQJD($yy, $ini, $num); //輸入指定年,求該回歸年各節氣点
-        for ($i = ($ini + 1); $i <= ($ini + $num); $i++) {
+        $jdez = $this->MeanJQJD($yy); //輸入指定年,求該回歸年各節氣点
+        for ($i = 0; $i < 24; $i++) {
             $ptb = $this->Perturbation($jdez[$i]); //取得受perturbation影響所需微調
-            $dt = $this->DeltaT($yy, floor($i / 2) + 3); //修正dynamical time to Universal time
+            $dt = $this->DeltaT($yy, ceil($i / 2) + 3); //修正dynamical time to Universal time
             $jdjq[$i] = $jdez[$i] + $ptb - $dt / 60 / 24; //加上攝動調整值ptb，減去對應的Delta T值(分鐘轉換為日)
             $jdjq[$i] = $jdjq[$i] + 8 / 24; //因中國時間比格林威治時間先行8小時，即1/3日(由于农历基于此数据,此处必须为北京时间)
         }
+        
+        $this->JQ[$yy] = $jdjq;
         
         return $jdjq;
     }
@@ -721,15 +720,18 @@ class paipan{
         
         //求出以冬至為起點之連續16個中氣（多取四個以備用）
         $dj = array();
-        $dj = $this->GetAdjustedJQ($yy - 1, 18, 5); //求出指定年冬至開始之節氣JD值,以前一年的值代入
+        $dj = $this->GetAdjustedJQ($yy - 1); //求出指定年冬至開始之節氣JD值,以前一年的值代入
         //轉移春分前之節氣至jdzq變數中，以重整index
-        $jdzq[0] = $dj[19]; //此為冬至中氣
-        $jdzq[1] = $dj[21]; //此為大寒中氣
-        $jdzq[2] = $dj[23]; //此為雨水中氣
-        $dj = $this->GetAdjustedJQ($yy, 0, 26); //求出指定年節氣之JD值
-        for ($i = 1; $i <= 13; $i++) {
-            $jdzq[$i + 2] = $dj[2 * $i - 1]; //轉移冬至後之節氣至jdzq變數中，以重整index
+        $jdzq[0] = $dj[18]; //此為冬至中氣
+        $jdzq[1] = $dj[20]; //此為大寒中氣
+        $jdzq[2] = $dj[22]; //此為雨水中氣
+        $dj = $this->GetAdjustedJQ($yy); //求出指定年節氣之JD值
+        for ($i = 0; $i < 12; $i++) {
+            $jdzq[$i + 3] = $dj[2 * $i]; //轉移冬至後之節氣至jdzq變數中，以重整index
         }
+        $dj = $this->GetAdjustedJQ($yy + 1); //求出指定年節氣之JD值
+        $jdzq[15] = $dj[0]; //此為春分中氣
+        
         return $jdzq;
     }
     /**
@@ -741,18 +743,18 @@ class paipan{
         $yy = intval($yy);
         
         $jdpjq = array();
-        $sjdjq = array();
-        $yea = $yy - 1;
-        $sjdjq = $this->GetAdjustedJQ($yea, 21, 3); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
+        $sjdjq = $this->GetAdjustedJQ($yy - 1); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
         //轉移春分前之立春至驚蟄之節氣至jdpjq變數中，以重整index
-        $jdpjq[0] = $sjdjq[22]; //此為立春
-        $jdpjq[1] = $sjdjq[24]; //此為驚蟄
-        $yea = $yy;
-        $sjdjq = $this->GetAdjustedJQ($yea, 0, 26); //求出指定年節氣之JD值,從驚蟄開始，到雨水
+        $jdpjq[0] = $sjdjq[21]; //此為立春
+        $jdpjq[1] = $sjdjq[23]; //此為驚蟄
+        $sjdjq = $this->GetAdjustedJQ($yy); //求出指定年節氣之JD值,從驚蟄開始，到雨水
         //轉移春分至小寒之節氣至jdpjq變數中，以重整index
-        for ($i = 1; $i <= 13; $i++) {
-            $jdpjq[$i + 1] = $sjdjq[2 * $i];
+        for ($i = 0; $i < 12; $i++) {
+            $jdpjq[$i + 2] = $sjdjq[2 * $i + 1];
         }
+        $sjdjq = $this->GetAdjustedJQ($yy + 1);
+        $jdpjq[14] = $sjdjq[1]; //此為清明
+        
         return $jdpjq;
     }
     /**
@@ -838,8 +840,7 @@ class paipan{
         $apt2 += 0.000037 * sin((M_PI / 180) * (161.72 + 24.198154 * $k));
         $apt2 += 0.000035 * sin((M_PI / 180) * (239.56 + 25.513099 * $k));
         $apt2 += 0.000023 * sin((M_PI / 180) * (331.55 + 3.592518 * $k));
-        $tnm = $pt + $apt1 + $apt2;
-        return $tnm;
+        return $pt + $apt1 + $apt2;
     }
     /**
      * 求算以含冬至中氣為陰曆11月開始的連續16個朔望月
@@ -849,9 +850,9 @@ class paipan{
     private function GetSMsinceWinterSolstice($yy) {
         $yy = intval($yy);
         
-        $dj = $this->GetAdjustedJQ($yy - 1, 18, 5); //求出指定年冬至開始之節氣JD值,以前一年的值代入
+        $dj = $this->GetAdjustedJQ($yy - 1); //求出指定年冬至開始之節氣JD值,以前一年的值代入
         //轉移春分前之節氣至jdzq變數中，以重整index
-        $jdws = $dj[19]; //此為冬至中氣
+        $jdws = $dj[18]; //此為冬至中氣
         
         $jdnm = array();
         $spcjd = $this->Jdays($yy - 1, 11, 0, 0); //求年初前兩個月附近的新月點(即前一年的11月初)
@@ -867,33 +868,16 @@ class paipan{
                 break;
             } //已超過冬至中氣(比較日期法)
         }
-        $XFu = array( //修复 XiuFu 使农历1800年至2900年与寿星万年历匹配
-            1796 => [6 => -243],
-            1804 => [8 => -369],
-            1831 => [4 => -120],
-            1842 => [1 => -963],
-            1863 => [1 => -166],
-            1880 => [11 => 352],
-            1896 => [2 => -810],
-            1914 => [12 => -161],
-            1916 => [2 => -374],
-            1920 => [11 => -348],
-            2372 => [2 => 62],
-            2498 => [2 => 95],
-            2550 => [7 => 76],
-            2583 => [2 => 108],
-            2668 => [4 => 186],
-            2729 => [13 => 64],
-            2730 => [0 => 64],
-            2794 => [4 => 87],
-            2801 => [13 => 176],
-            2802 => [1 => 175],
-            2809 => [10 => 189],
-            2842 => [10 => 273],
-            2849 => [8 => 242],
-            2860 => [9 => 197],
-            2866 => [7 => 64],
-            2874 => [10 => 143]
+        $XFu = array( //修复 XiuFu 使农历1800年至2300年与寿星万年历匹配
+            1804 => [8 => -310],
+            1831 => [4 => -61],
+            1842 => [1 => -904],
+            1863 => [1 => -107],
+            1880 => [11 => 293],
+            1896 => [2 => -751],
+            1914 => [12 => -102],
+            1916 => [2 => -315],
+            1920 => [11 => -289]
         );
         $jj = $j; //取此時的索引值
         for ($k = 0; $k <= 15; $k++) {
@@ -1254,28 +1238,6 @@ class paipan{
         return $xz;
     }
     /**
-     * 求出含某公历年立春點開始的24节气的儒略日历时间
-     * @param int $yy
-     * @return array $this->jq[(i+21)%24]
-     */
-    public function Get24JQ($yy) {
-        $yy = intval($yy);
-        
-        $yea = $yy - 1;
-        $sjdjq = $this->GetAdjustedJQ($yea, 21, 3); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
-        //轉移春分前之立春至驚蟄之節氣至jdpjq變數中，以重整index
-        $jdpjq[0] = $sjdjq[22]; //此為立春
-        $jdpjq[1] = $sjdjq[23]; //此為雨水
-        $jdpjq[2] = $sjdjq[24]; //此為驚蟄
-        $yea = $yy;
-        $sjdjq = $this->GetAdjustedJQ($yea, 0, 21); //求出指定年節氣之JD值,從春分開始，到大寒
-        //轉移春分至大寒之節氣至jdpjq變數中，以重整index
-        for ($i = 1; $i <= 21; $i++) {
-            $jdpjq[$i + 2] = $sjdjq[$i];
-        }
-        return $jdpjq;
-    }
-    /**
      * 四柱計算,分早子时晚子时,传公历
      * @param int $yy
      * @param int $mm [1-12]
@@ -1531,20 +1493,16 @@ class paipan{
         $rt = array(); //要返回的数组 return
         
         if(is_null($j) === false){ //需要转地方真太阳时
-            $this->j = $j; //转为全局变量
-            
             $rt['pty'] = $spcjd + (floatval($j) - $this->J) * 4 * 60 / 86400; //计算地方平太阳时,每经度时差4分钟
             $rt['pty'] = $this->Jtime($rt['pty']); //地方平太阳时
             
-            $spcjd = $this->zty($spcjd); //采用真太阳时排盘,这里有点疑问: 对应的廿四节气的计算是否也要转为真太阳时呢?
+            $spcjd = $this->zty($spcjd, $j); //采用真太阳时排盘,这里有点疑问: 对应的廿四节气的计算是否也要转为真太阳时呢?
             $rt['zty'] = $this->Jtime($spcjd); //地方真太阳时
         }
         
         [$yy, $mm, $dd, $hh, $mt, $ss] = $this->Jtime($spcjd); //假设hh传了>24的数字,此处修正
         
         $ta = 365.24244475; //一個廻歸年的天數
-        
-        
         $nwx = [0, 0, 0, 0, 0]; //五行数量 number of WuXing 这里不计算藏干里的
         $nyy = [0, 0]; //阴阳数量 number of YinYang 这里不计算藏干里的
         
