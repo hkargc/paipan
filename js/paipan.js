@@ -17,7 +17,7 @@ function paipan() {
     /**
      * 四柱是否区分 早晚子 时,true则23:00-24:00算成上一天
      */
-    this.zwz = false;
+    this.zwz = true;
     /**
      * 均值朔望月長 synodic month (new Moon to new Moon)
      */
@@ -1406,6 +1406,8 @@ function paipan() {
      * @return array 月柱干支代码列表
      */
     this.MGZ = function(ygz) {
+		var ygz = this.intval(ygz);
+		
         var mgz = new Array();
 
         //var ygz = this.gz.indexOf(ygz);
@@ -1423,14 +1425,16 @@ function paipan() {
      * @return array 时柱干支代码列表
      */
     this.HGZ = function(dgz) {
+		var dgz = this.intval(dgz);
+		
         var hgz = new Array();
 
         //var dgz = this.gz.indexOf(dgz);
 
         var nv = 12 * (dgz % 10);
-        for (var i = 0; i <= 11; i++) {
+        for (var i = 0; i <= (this.zwz?12:11); i++) { //考虑晚子时
             var pv = (i + nv) % 60;
-            hgz[pv] = this.gz[pv];
+            hgz[pv] = this.gz[pv] + (i == 12 ? '+' : ''); //+号在查找方法中要用到
         }
         return hgz;
     };
@@ -1461,7 +1465,7 @@ function paipan() {
         return ((10 + tg - dz) % 10) / 2 * 12 + dz;
     };
     /**
-     * 根据八字干支查找对应的公历日期(GanZhi To GongLi),这里没有考虑早晚子时
+     * 根据八字干支查找对应的公历日期(GanZhi To GongLi)
      * @param int ygz
      * @param int mgz
      * @param int dgz
@@ -1502,6 +1506,10 @@ function paipan() {
             this.logs(2, 1);
             return false;
         }
+		var hgzs = this.HGZ(dgz); //该日下所有时柱
+		if(this.zwz && (hgzs[hgz].substr(-1) == '+')){ //晚子时,日柱后挪一天
+			dgz = (dgz + 1) % 60;
+		}
         var yeaf = yeai + mx * 60;
 
         if (yeai < -1000 || yeaf > 3000) { //說明大誤差區域:適用於西元-1000年至西元3000年,超出此範圍誤差較大
@@ -1545,7 +1553,7 @@ function paipan() {
                     var ids = id;
                     var fds = fjd;
                 }
-                ifs.push([this.Jtime(ids), this.Jtime(fds)]); //儒略日历时间转成公历时间
+                ifs.push([this.Jtime(ids), this.Jtime(fds)]); //儒略日历时间转成公历时间.如果开启早晚子并且是子时这里有点瑕疵,但考虑到跨节这里有点复杂
             }
         }
         return ifs;

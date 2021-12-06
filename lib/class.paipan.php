@@ -1316,6 +1316,8 @@ class paipan{
      * @return array 月柱干支代码列表
      */
     public function MGZ($ygz) {
+        $ygz = intval($ygz);
+        
         $mgz = array();
         
         //$ygz = array_search($ygz, $this->gz);
@@ -1333,14 +1335,16 @@ class paipan{
      * @return array 时柱干支代码列表
      */
     public function HGZ($dgz) {
+        $dgz = intval($dgz);
+        
         $hgz = array();
         
         //$dgz = array_search($dgz, $this->gz);
         
         $nv = 12 * ($dgz % 10);
-        for ($i = 0; $i <= 11; $i++) {
+        for ($i = 0; $i <= ($this->zwz?12:11); $i++) {
             $pv = ($i + $nv) % 60;
-            $hgz[$pv] = $this->gz[$pv];
+            $hgz[$pv] = $this->gz[$pv] . ($i == 12 ? "+" : ""); //+号在查找方法中要用到
         }
         return $hgz;
     }
@@ -1371,13 +1375,14 @@ class paipan{
         return ((10 + $tg - $dz) % 10) / 2 * 12 + $dz;
     }
     /**
-     * 根据八字干支查找对应的公历日期(GanZhi To GongLi),这里没有考虑早晚子时
+     * 根据八字干支查找对应的公历日期(GanZhi To GongLi)
      * @param int ygz
      * @param int mgz
      * @param int dgz
      * @param int hgz
      * @param int yeai 起始年 year initial
      * @param int mx 查找多少个甲子
+     * @return false/array
      */
     public function gz2gl($ygz, $mgz, $dgz, $hgz, $yeai, $mx) {
         $ygz = intval($ygz);
@@ -1411,6 +1416,10 @@ class paipan{
         if (! key_exists($hgz, $this->HGZ($dgz))) { //对应的时干支不存在
             $this->logs(2,1);
             return false;
+        }
+        $hgzs = $this->HGZ($dgz); //该日下所有时柱
+        if($this->zwz && (substr($hgzs[$hgz], -1) == '+')){ //晚子时,日柱后挪一天
+            $dgz = ($dgz + 1) % 60;
         }
         $yeaf = $yeai + $mx * 60;
         
@@ -1455,7 +1464,7 @@ class paipan{
                     $ids = $id;
                     $fds = $fjd;
                 }
-                $ifs[] = [$this->Jtime($ids), $this->Jtime($fds)]; //儒略日历时间转成公历时间
+                $ifs[] = [$this->Jtime($ids), $this->Jtime($fds)]; //儒略日历时间转成公历时间.如果开启早晚子并且是子时这里有点瑕疵,但考虑到跨节这里有点复杂
             }
         }
         return $ifs;

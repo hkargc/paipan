@@ -71,8 +71,8 @@ function chg(){
 	var [tg, dz] = p.GetGZ(yy, mm , dd, hh, mt, ss);
 	txt += "对应的干支历:"+p.ctg[tg[0]]+p.cdz[dz[0]]+p.ctg[tg[1]]+p.cdz[dz[1]]+p.ctg[tg[2]]+p.cdz[dz[2]]+p.ctg[tg[3]]+p.cdz[dz[3]]+"\n";
 	
-	var d = p.gz2gl(p.GZ(tg[0], dz[0]), p.GZ(tg[1], dz[1]), p.GZ(tg[2], dz[2]), p.GZ(tg[3], dz[3]), yy+1, 4); //往后查4个甲子
-	txt += "此后240年四柱相同的有:\n"
+	var d = p.gz2gl(p.GZ(tg[0], dz[0]), p.GZ(tg[1], dz[1]), p.GZ(tg[2], dz[2]), p.GZ(tg[3], dz[3]), 1949, 4); //从1949往后查4个甲子
+	txt += "从1949年后4个甲子内四柱相同的有:\n"
 	for(var i in d){
 		var kk = d[i][0];
 		var cc = d[i][1];
