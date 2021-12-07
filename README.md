@@ -86,7 +86,7 @@ p.GetSolarDays(yy, mm); //获取公历某个月有多少天<br />
 p.GetLunarDays(yy, mm, ry); //获取农历某个月有多少天<br />
 p.GetRunyue(yy); //获取农历某年的闰月,0为无闰月<br />
 p.GetXZ(yy, mm, dd, hh, mt, ss); //根据公历年月日精确计算星座下标<br />
-p.Get24JQ(yy); //求出含某公历年立春點開始的24节气的儒略日历时间<br />
+p.GetAdjustedJQ(yy); //求出含某公历年春分點開始的24节气的儒略日历时间<br />
 p.MGZ(ygz); //根据年干支计算所有合法的月干支: 甲己之年丙作首...<br />
 p.HGZ(dgz); //根据日干支计算所有合法的时干支: 甲己還加甲...<br />
 p.GZ(tg, dz);<br />
