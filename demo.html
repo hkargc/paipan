@@ -43,13 +43,15 @@ $(function(){
 	//var dz = [0,1,4,8,11,6,2,5,6];
 	var gxs = GetGX(tg, dz);
 	for(var i in gxs){
-		var gx = gxs[i];
-		var a = [];
-		for(var k in gx[0]){
-			array_push(a, ckey[k] + tgdz[gx[1][0]]);
+		for(var j in gxs[i]){
+			var gx = gxs[i][j];
+			var a = [];
+			for(var k in gx[0]){
+				array_push(a, ckey[k] + tgdz[gx[1][0]]);
+			}
+			
+			console.log(implode('+', a) + ':' + gx[1][4] + "\n");
 		}
-		
-		console.log(implode('+', a) + ':' + gx[1][4] + "\n");
 	}
 });	
 </script>

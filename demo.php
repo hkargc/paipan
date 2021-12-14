@@ -3,7 +3,7 @@ include(__DIR__ . '/lib/class.paipan.php');
 include(__DIR__ . '/lib/class.paipan.gx.php');
 $p = new paipan();
 
-$fm = $p->fatemaps(0, 1990, 1, 1, 0, 0, 0, 80);
+$fm = $p->fatemaps(0, 1990, 1, 1, 12, 0, 0, null);
 
 print_r($fm);
 
@@ -29,11 +29,13 @@ $tgdz = array(
 //$tg = [0,1,2,3,4,5,6,7,5];
 //$dz = [0,1,4,8,11,6,2,5,6];
 $gxs = GetGX($tg, $dz);
-foreach ($gxs as $gx){
-    $a = [];
-    foreach ($gx[0] as $k => $v){
-        $a[] = $ckey[$k] . $tgdz[$gx[1][0]];
+foreach ($gxs as $type => $list){ //$type指示0天干1地支
+    foreach ($list as $gx){
+        $a = [];
+        foreach ($gx[0] as $k => $v){
+            $a[] = $ckey[$k] . $tgdz[$gx[1][0]];
+        }
+        
+        echo implode('+', $a) . ':' . $gx[1][4]."<br />\n";
     }
-    
-    echo implode('+', $a) . ':' . $gx[1][4]."<br />\n";
 }
