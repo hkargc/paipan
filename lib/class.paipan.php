@@ -1591,7 +1591,7 @@ class paipan{
         $qyy = $jt[0]; //起運年(公历)
         
         $rt['qyy'] = $qyy; //起運年
-        $rt['qyy_desc'] = "出生后" . intval($zf / $ta) . "年" . intval($zf % $ta / ($ta / 12)) . "个月" . intval($zf % $ta % ($ta / 12)) . "天起运"; //一年按ta天算,一个月按ta/12天算
+        $rt['qyy_desc'] = "出生后" . intval($zf / $ta) . "年" . intval(fmod($zf, $ta) / ($ta / 12)) . "个月" . intval(fmod(fmod($zf, $ta), ($ta / 12))) . "天起运"; //一年按ta天算,一个月按ta/12天算
         
         //求算起運年(指節氣年,农历)
         $qjr = $this->GetPureJQsinceSpring($qyy); //取得自立春開始的非中氣之12節氣
