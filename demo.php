@@ -28,7 +28,7 @@ $tgdz = array(
 
 //$tg = [0,1,2,3,4,5,6,7,5];
 //$dz = [0,1,4,8,11,6,2,5,6];
-$gxs = GetGX($tg, $dz);
+$gxs = $p->GetGX($tg, $dz);
 foreach ($gxs as $type => $list){ //$type指示0天干1地支
     foreach ($list as $gx){
         $a = [];
