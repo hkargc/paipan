@@ -14,6 +14,8 @@ document.write("<script src='./js/infinity.js?v="+Math.random()+"'><\/script>");
 
 document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 <!-- document.write("<script src='./js/paipan.min.js?v="+Math.random()+"'><\/script>"); -->
+
+document.write("<script src='./js/paipan.gx.js?v="+Math.random()+"'><\/script>"); //天干地支刑冲合害
 </script> 
 </head>
 <body>
@@ -36,6 +38,21 @@ document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 </div>
 
 <script>
+var ckey = new Array();
+ckey[0] = '年柱';
+ckey[1] = '月柱';
+ckey[2] = '日柱';
+ckey[3] = '时柱';
+ckey[4] = '大运';
+ckey[5] = '流年';
+ckey[6] = '流月';
+ckey[7] = '流日';
+ckey[8] = '流时';
+
+var tgdz = new Array();
+tgdz[0] = '天干';
+tgdz[1] = '地支';
+
 function chg(){
 
 	var id = inf.get();
@@ -64,6 +81,21 @@ function chg(){
 	txt += "本地平太阳时为:"+fm['pty'][0]+"年"+fm['pty'][1]+"月"+fm['pty'][2]+"日"+fm['pty'][3]+"时"+fm['pty'][4]+"分"+fm['pty'][5]+"秒"+"\n\n";
 	txt += "本地真太阳时为:"+fm['zty'][0]+"年"+fm['zty'][1]+"月"+fm['zty'][2]+"日"+fm['zty'][3]+"时"+fm['zty'][4]+"分"+fm['zty'][5]+"秒"+"\n\n";
 	txt += "真太阳时八字为:"+p.ctg[fm.tg[0]]+p.cdz[fm.dz[0]]+p.ctg[fm.tg[1]]+p.cdz[fm.dz[1]]+p.ctg[fm.tg[2]]+p.cdz[fm.dz[2]]+p.ctg[fm.tg[3]]+p.cdz[fm.dz[3]]+"\n\n";
+	
+	txt += "该八字的刑冲合害关系:\n";
+	var gxs = GetGX(fm['tg'], fm['dz']);
+	for(var i in gxs){
+		for(var j in gxs[i]){
+			var gx = gxs[i][j];
+			var a = [];
+			for(var k in gx[0]){
+				array_push(a, ckey[k] + tgdz[gx[1][0]]);
+			}
+			
+			txt += implode('+', a) + ':' + gx[1][4] + "\n";
+		}
+	}
+	txt += "\n";
 	
 	var jd = p.Jdays(yy, mm, dd, hh, mt, ss);
 	txt += "对应的儒略日:"+jd+"\n\n";
