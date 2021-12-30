@@ -1,7 +1,7 @@
 PHP JavaScript 农历公历干支历互转,万年历,四柱,六十甲子,属相,十二星座,二十四节气,支持从-1000到3000年间的八字排盘及大运推算,真太阳时排盘,分析刑冲合害关系<br />
 
 算法原理和JS源码完全来自: http://www.bieyu.com/<br />
-数据比对及农历修正项目: http://www.nongli.net/sxwnl/<br />
+结果比对及农历修正来自寿星万年历: http://www.nongli.net/sxwnl/<br />
 
 演示地址: https://hkargv.github.io/paipan/ <br />
 
