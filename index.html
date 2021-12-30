@@ -9,7 +9,7 @@ if(top != self){
 	top.location.href = self.location.href;  
 }
 document.write("<script src='./js/jquery-3.6.0.min.js'><\/script>");
-document.write("<script src='./js/J.js?v="+Math.random()+"'><\/script>"); //全国经度数据,来源于寿星万年历
+document.write("<script src='./js/JW.js?v="+Math.random()+"'><\/script>"); //全国经度数据,来源于寿星万年历
 document.write("<script src='./js/infinity.js?v="+Math.random()+"'><\/script>"); //无限级选择
 
 document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
@@ -39,11 +39,11 @@ document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 function chg(){
 
 	var id = inf.get();
-	if((id == 0) || (J[id] == undefined)){
+	if((id == 0) || (JW[id] == undefined)){
 		$('#text').val("请选择城市!");
 		return false;
 	}
-	var j = J[id];
+	var jw = JW[id];
 	var yy = parseInt($("#yy").val());
 	var mm = parseInt($("#mm").val());
 	var dd = parseInt($("#dd").val());
@@ -57,7 +57,7 @@ function chg(){
 		return false;
 	}
 	
-	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss, j[2]+j[3]/60); //此处演示真太阳时排盘
+	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss, jw[2]+jw[3]/60, jw[4]+jw[5]/60); //此处演示真太阳时排盘
 
 	var txt = '';
 	txt += "公历北京时间为:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n\n";
@@ -150,7 +150,7 @@ $(function(){
 	$("#ss").val(d.getSeconds());
 	
 	inf = new infinity();
-	inf.init('city', J, 2, chg);
+	inf.init('city', JW, 2, chg);
 		
 	chg();
 });

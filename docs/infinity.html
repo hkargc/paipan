@@ -2,15 +2,15 @@
 <html lang="zh">
 <head>
 	<meta charset="utf-8" />
-	<script src="../js/J.js" crossorigin="anonymous"></script>
+	<script src="../js/JW.js" crossorigin="anonymous"></script>
 	<script src="../js/infinity.js" crossorigin="anonymous"></script>
 </head>
 <body>
-<div id='wuji0'></div><input type='button' onclick='inf0.get()' value='查看第一个' />
+<div id='wuji0'></div><input type='button' onclick='console.log(inf0.get())' value='查看第一个' />
 <p>
-<div id='wuji1'></div><input type='button' onclick='inf1.get()' value='查看第二个' />
+<div id='wuji1'></div><input type='button' onclick='console.log(inf1.get())' value='查看第二个' />
 <p>
-<div id='wuji2'></div><input type='button' onclick='inf2.get()' value='查看第三个' />
+<div id='wuji2'></div><input type='button' onclick='console.log(inf2.get())' value='查看第三个' />
 <script>
 	var wuji1 = new Array();
 	wuji1[1] = [0, '1级1'];
@@ -35,7 +35,7 @@
 
 	window.onload = function() {
 		inf0 = new infinity();
-		inf0.init('wuji0', J, 2);
+		inf0.init('wuji0', JW, 2);
 
 		inf1 = new infinity();
 		inf1.init('wuji1', wuji1, 0);

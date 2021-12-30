@@ -1,6 +1,6 @@
 "use strict";
 /**
- * 无限级单选菜单
+ * 无限级下拉菜单
  * @author hkargc@139.com
  */
 function infinity() {
