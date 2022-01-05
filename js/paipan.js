@@ -3,7 +3,7 @@
  * @author hkargc@139.com
  * 本日历及排盘类完全源于以下项目,本人仅作为代码搬运工,感谢项目作者的无私分享
  * 日历部分由bieyu.com搬运而来,其提供了详尽的历法转换原理,JS源码及部分PHP源码,项目地址: http://www.bieyu.com/
- * 农历校正部分来自寿星万年历,感谢福建莆田第十中学许剑伟老师,项目地址: http://www.nongli.net/sxwnl/
+ * 农历校正来自寿星万年历,感谢福建莆田第十中学许剑伟老师,项目地址: http://www.nongli.net/sxwnl/
  */
 function paipan() {
 	/**
@@ -89,10 +89,6 @@ function paipan() {
      * 阴阳 char of YingYang
      */
     this.cyy = ['阳', '阴'];
-    /**
-     * 命局类型
-     */
-    this.lx = ['命旺', '印重', '煞重', '财旺', '伤官'];
     /**
      * 天干的五行屬性,01234分別代表:金水木火土
      */
@@ -192,6 +188,185 @@ function paipan() {
      * 地支的四季屬性 SiJi DiZhi
      */
     this.sjdz = [1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 1];
+	/**
+	 * 节气修复 XiuFu 使农历1650年至2300年与寿星万年历匹配
+	 */
+	this.jqXFu = {
+		1646:{1:-1,9:1,22:-1,23:-1},
+		1647:{0:-1},
+		1650:{1:-1,9:1,11:1,22:-1},
+		1651:{0:-1,3:-1},
+		1652:{11:-1},
+		1653:{2:-1},
+		1654:{0:-1,1:-1,11:1,17:-1},
+		1655:{0:-1,3:-1,20:1},
+		1656:{10:1,13:1},
+		1657:{2:-1,8:1,20:-1},
+		1658:{5:-1,11:1,21:-1},
+		1659:{3:-1,6:-1},
+		1660:{7:1,10:1,13:1,15:1},
+		1661:{2:-1,12:1,20:-1},
+		1662:{5:-1,11:1,21:-1},
+		1663:{3:-1,23:-1},
+		1664:{10:1,13:1,15:1,19:-1},
+		1665:{2:-1,4:-1,12:1,20:-1},
+		1666:{21:-1},
+		1667:{22:-1,23:-1},
+		1668:{14:1,19:-1},
+		1669:{4:-1,12:1},
+		1670:{21:-1},
+		1671:{1:-1,18:-1,22:-1,23:-1},
+		1672:{0:-1,14:1},
+		1673:{12:1,16:1},
+		1675:{1:-1,9:1,22:-1,23:-1},
+		1676:{0:-1,14:1},
+		1677:{16:1},
+		1678:{4:-1},
+		1679:{1:-1,4:-1,9:1,22:-1,23:-1},
+		1680:{0:-1,3:-1},
+		1682:{2:-1},
+		1683:{1:-1,11:1,22:-1},
+		1684:{0:-1,3:-1},
+		1685:{10:1},
+		1686:{2:-1,8:1},
+		1687:{1:-1,5:-1,11:1},
+		1688:{0:-1,3:-1,6:-1},
+		1689:{10:1,13:1},
+		1690:{2:-1,20:-1},
+		1691:{5:-1,11:1,21:-1},
+		1692:{3:-1,21:1},
+		1693:{10:1,13:1,15:1},
+		1694:{2:-1,4:-1,12:1,20:-1},
+		1695:{21:-1},
+		1696:{23:-1},
+		1697:{13:1,15:1,19:-1},
+		1698:{2:-1,4:-1,12:1,20:-1},
+		1699:{21:-1},
+		1700:{1:-1,23:-1},
+		1701:{15:1,19:-1},
+		1702:{4:-1,12:1,20:-1},
+		1703:{21:-1},
+		1704:{1:-1,9:1,22:-1,23:-1},
+		1705:{0:-1,14:1},
+		1708:{1:-1,9:1,18:-1,22:-1,23:-1},
+		1709:{0:-1},
+		1710:{16:1},
+		1712:{1:-1,11:1,22:-1,23:-1},
+		1713:{0:-1,3:-1},
+		1714:{10:1},
+		1715:{2:-1,8:1},
+		1716:{1:-1,5:-1,11:1,22:-1},
+		1717:{0:-1,3:-1,6:-1},
+		1718:{10:1},
+		1719:{2:-1},
+		1720:{5:-1,11:1},
+		1721:{0:-1,3:-1},
+		1722:{10:1,13:1},
+		1723:{2:-1,4:-1},
+		1724:{21:-1},
+		1725:{3:-1},
+		1726:{13:1,15:1},
+		1727:{2:-1,4:-1,12:1,20:-1},
+		1728:{21:-1},
+		1729:{23:-1},
+		1730:{13:1,14:1,15:1},
+		1731:{4:-1,12:1,20:-1},
+		1732:{21:-1},
+		1733:{1:-1},
+		1735:{20:-1},
+		1738:{19:-1},
+		1740:{21:-1},
+		1744:{8:-1},
+		1745:{23:-1},
+		1747:{7:-1},
+		1749:{1:-1},
+		1751:{13:1},
+		1753:{5:-1,22:-1},
+		1756:{12:1},
+		1760:{2:-1},
+		1773:{21:-1},
+		1774:{11:1},
+		1776:{16:1},
+		1778:{23:-1},
+		1779:{6:-1},
+		1781:{17:1},
+		1782:{1:-1},
+		1784:{13:1},
+		1786:{22:-1},
+		1806:{21:-1},
+		1808:{19:-1},
+		1809:{16:1},
+		1811:{23:-1},
+		1815:{1:-1},
+		1817:{13:1},
+		1819:{22:-1},
+		1824:{9:1},
+		1826:{4:-1},
+		1829:{15:1},
+		1836:{11:1},
+		1844:{5:1},
+		1846:{16:1},
+		1848:{18:1},
+		1849:{3:-1},
+		1850:{13:1},
+		1851:{12:1,17:1},
+		1855:{2:-1},
+		1862:{14:1,15:1},
+		1864:{8:1},
+		1866:{14:1},
+		1867:{7:1,10:1},
+		1878:{19:1},
+		1879:{16:1},
+		1883:{13:1},
+		1884:{12:1,17:1},
+		1886:{9:1},
+		1895:{14:1,15:1},
+		1898:{11:1},
+		1899:{6:1,14:1},
+		1912:{16:1},
+		1913:{12:1},
+		1917:{17:-1},
+		1922:{22:-1},
+		1927:{11:-1},
+		1928:{6:-1},
+		1951:{18:1},
+		1978:{20:-1},
+		2295:{5:1}
+	};
+	/**
+	 * 朔望月moon修复 XiuFu 使农历1650年至2300年与寿星万年历匹配
+	 */
+	this.smXFu = {
+		1649:{5:-1},
+		1662:{2:-1},
+		1673:{11:1},
+		1684:{14:-1},
+		1685:{2:-1},
+		1687:{3:-1},
+		1694:{7:-1},
+		1704:{11:1},
+		1708:{3:-1},
+		1720:{7:-1},
+		1759:{4:-1},
+		1778:{4:-1},
+		1779:{7:-1},
+		1787:{12:-1},
+		1788:{0:-1},
+		1789:{8:-1},
+		1796:{6:-1},
+		1804:{8:-1},
+		1831:{4:-1},
+		1841:{14:-1},
+		1842:{1:-1},
+		1862:{14:-1},
+		1863:{1:-1},
+		1880:{11:1},
+		1896:{2:-1},
+		1914:{12:-1},
+		1915:{14:-1},
+		1916:{2:-1},
+		1920:{11:-1}
+	};
     /**
      * 记录日志
      * @var string s
@@ -730,32 +905,37 @@ function paipan() {
         return dt / 60; //將秒轉換為分
     };
     /**
-     * 获取指定公历年對Perturbaton作調整後的自春分點開始的24節氣
+     * 获取指定公历年對Perturbaton作調整後的自春分點開始的24節氣,1645年启用传教士汤若望引进的时宪历,与现代天文算法存在误差,此处依据寿星万年历进行修正
      * @param int yy
+	 * @param bool calendar 是否根据黄历进行调整,调整后精度为日(仅用于农历计算)
      * @return array this.jq[i%24]
      */
-    this.GetAdjustedJQ = function(yy) {
+    this.GetAdjustedJQ = function(yy, calendar) {
         var yy = this.intval(yy);
+		var calendar = calendar ? true : false;
 		
-		if(this.JQ && this.JQ[yy]){
-			return this.JQ[yy];
+		var jdjq = new Array();
+		if(this.JQ[yy] == undefined){
+			var jdez = this.MeanJQJD(yy); //輸入指定年,求該回歸年各節氣点
+			for (var i = 0; i < 24; i++) {
+				var ptb = this.Perturbation(jdez[i]); //取得受perturbation影響所需微調
+				var dt = this.DeltaT(yy, Math.ceil(i / 2) + 3); //修正dynamical time to Universal time
+				jdjq[i] = jdez[i] + ptb - dt / 60 / 24; //加上攝動調整值ptb得到動態時間dynamical time or ephemeris days，減去對應的Delta T值(分鐘轉換為日)得到True Universal time
+				jdjq[i] = jdjq[i] + 8 / 24; //因中國時間比格林威治時間先行8小時，即1/3日(由于农历基于此数据,此处必须为北京时间)
+			}
+			this.JQ[yy] = jdjq;
 		}
-		
-        var jdjq = new Array();
-		var jdez = this.MeanJQJD(yy); //輸入指定年,求該回歸年各節氣点
-		for (var i = 0; i < 24; i++) {
-			var ptb = this.Perturbation(jdez[i]); //取得受perturbation影響所需微調
-			var dt = this.DeltaT(yy, Math.ceil(i / 2) + 3); //修正dynamical time to Universal time
-			jdjq[i] = jdez[i] + ptb - dt / 60 / 24; //加上攝動調整值ptb得到動態時間dynamical time or ephemeris days，減去對應的Delta T值(分鐘轉換為日)得到True Universal time
-			jdjq[i] = jdjq[i] + 8 / 24; //因中國時間比格林威治時間先行8小時，即1/3日(由于农历基于此数据,此处必须为北京时间)
+        
+		var jdjq = this.JQ[yy].slice(0); //打破引用
+		if(calendar == true){
+			for(var i in this.jqXFu[yy]){
+				jdjq[i] += this.jqXFu[yy][i];
+			}
 		}
-		
-		this.JQ[yy] = jdjq;
-		
         return jdjq;
     };
     /**
-     * 求出自冬至點為起點的連續16個中氣
+     * 求出自冬至點為起點的連續16個中氣(仅用于农历计算)
      * @param int yy
      * @return array this.jq[(2*i+18)%24]
      */
@@ -766,16 +946,16 @@ function paipan() {
 
         //求出以冬至為起點之連續16個中氣（多取四個以備用）
         var dj = new Array(26);
-        dj = this.GetAdjustedJQ(yy - 1); //求出指定年冬至開始之節氣JD值,以前一年的值代入
+        dj = this.GetAdjustedJQ(yy - 1, true); //求出指定年冬至開始之節氣JD值,以前一年的值代入
         //轉移春分前之節氣至jdzq變數中，以重整index
         jdzq[0] = dj[18]; //此為冬至中氣
         jdzq[1] = dj[20]; //此為大寒中氣
         jdzq[2] = dj[22]; //此為雨水中氣
-        dj = this.GetAdjustedJQ(yy); //求出指定年節氣之JD值
+        dj = this.GetAdjustedJQ(yy, true); //求出指定年節氣之JD值
         for (var i = 0; i < 12; i++) {
             jdzq[i + 3] = dj[2 * i]; //轉移春分後之節氣至jdzq變數中，以重整index
         }
-		dj = this.GetAdjustedJQ(yy + 1); //求出指定年節氣之JD值
+		dj = this.GetAdjustedJQ(yy + 1, true); //求出指定年節氣之JD值
 		jdzq[15] = dj[0]; //此為春分中氣
 		
         return jdzq;
@@ -789,17 +969,17 @@ function paipan() {
         var yy = this.intval(yy);
 
         var jdpjq = new Array();
-        var sjdjq = this.GetAdjustedJQ(yy - 1); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
+        var sjdjq = this.GetAdjustedJQ(yy - 1, false); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
         //轉移春分前之立春至驚蟄之節氣至jdpjq變數中，以重整index
         jdpjq[0] = sjdjq[21]; //此為立春
         jdpjq[1] = sjdjq[23]; //此為驚蟄
 
-        sjdjq = this.GetAdjustedJQ(yy); //求出指定年節氣之JD值,從清明開始，到惊蛰
+        sjdjq = this.GetAdjustedJQ(yy, false); //求出指定年節氣之JD值,從清明開始，到惊蛰
         for (var i = 0; i < 12; i++) {
             jdpjq[i + 2] = sjdjq[2 * i + 1];
         }
 		
-		sjdjq = this.GetAdjustedJQ(yy + 1);
+		sjdjq = this.GetAdjustedJQ(yy + 1, false);
         jdpjq[14] = sjdjq[1]; //此為清明
 		
         return jdpjq;
@@ -825,14 +1005,14 @@ function paipan() {
     /**
      * 求出實際新月點
      * 以2000年初的第一個均值新月點為0點求出的均值新月點和其朔望月之序數k代入此副程式來求算實際新月點
-     * @param int k
+     * @param float k (int)k + 0,0.25,0.5,0.75分別對應新月,上弦月,滿月,下弦月
      * @return number
      */
     this.TrueNewMoon = function(k) {
         var t, t2, t3, t4;
         var m, mprime, f, omega, es;
         var pt, apt1, apt2, jdt;
-        var k = this.intval(k);
+        var k = this.floatval(k);
 
         jdt = 2451550.09765 + k * this.synmonth;
         t = (jdt - 2451545) / 36525; //2451545為2000年1月1日正午12時的JD
@@ -896,17 +1076,19 @@ function paipan() {
     /**
      * 求算以含冬至中氣為陰曆11月開始的連續16個朔望月
      * @param int yy 公历年份
+	 * @param bool calendar 是否根据黄历进行调整,调整后精度为日(仅用于农历计算)
      * @return array
      */
-    this.GetSMsinceWinterSolstice = function(yy) {
+    this.GetSMsinceWinterSolstice = function(yy, calendar) {
         var yy = this.intval(yy);
-
+		var calendar = calendar ? true : false;
+		
         var jdnm = new Array();
         var kn, tjd = new Array(),
             i, k;
         var spcjd, phase, kn;
 
-        var dj = this.GetAdjustedJQ(yy - 1); //求出指定年冬至開始之節氣JD值,以前一年的值代入
+        var dj = this.GetAdjustedJQ(yy - 1, true); //求出指定年冬至開始之節氣JD值,以前一年的值代入
         var jdws = dj[18]; //此為冬至中氣
 
         spcjd = this.Jdays(yy - 1, 11, 0, 0); //求年初前兩個月附近的新月點(即前一年的11月初)
@@ -922,24 +1104,16 @@ function paipan() {
                 break;
             } //已超過冬至中氣(比較日期法)
         }
-		var XFu = { //修复 XiuFu 使农历1800年至2300年与寿星万年历匹配
-			1804:{8:-310},
-			1831:{4:-61},
-			1842:{1:-904},
-			1863:{1:-107},
-			1880:{11:293},
-			1896:{2:-751},
-			1914:{12:-102},
-			1916:{2:-315},
-			1920:{11:-289}
-		};
+		
         var jj = j; //取此時的索引值
         for (k = 0; k <= 15; k++) {
             jdnm[k] = tjd[jj - 1 + k]; //重排索引，使含冬至朔望月的索引為0
-			if(XFu[yy] && XFu[yy][k]){
-				jdnm[k] += XFu[yy][k] / 86400;
-			}
         }
+		if(calendar == true){
+			for(var k in this.smXFu[yy]){
+				jdnm[k] += this.smXFu[yy][k]
+			}
+		}
         return jdnm;
     };
     /**
@@ -952,7 +1126,7 @@ function paipan() {
         var yz;
         var mc = new Array();
         var jdzq = this.GetZQsinceWinterSolstice(yy); //取得以前一年冬至為起點之連續17個中氣
-        var jdnm = this.GetSMsinceWinterSolstice(yy); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
+        var jdnm = this.GetSMsinceWinterSolstice(yy, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
         yz = 0; //設定旗標，0表示未遇到閏月，1表示已遇到閏月
         mc[0] = 0;
         if (Math.floor(jdzq[12] + 0.5) >= Math.floor(jdnm[13] + 0.5)) { //若第13個中氣jdzq(12)大於或等於第14個新月jdnm(13)
@@ -1011,7 +1185,7 @@ function paipan() {
         if (yy < -1000 || yy > 3000) { //適用於西元-1000年至西元3000年,超出此範圍誤差較大
             this.logs(1);
         }
-        sjd = this.GetSMsinceWinterSolstice(yy); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
+        sjd = this.GetSMsinceWinterSolstice(yy, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
         mc = this.GetZQandSMandLunarMonthCode(yy);
         runyue = 0; //若閏月旗標為0代表無閏月
         for (var j = 1; j <= 14; j++) { //確認指定年前一年11月開始各月是否閏月
@@ -1109,12 +1283,12 @@ function paipan() {
         if (this.ValidDate(yy, mm, dd) === false) {
             return false;
         }
-        sjd = this.GetSMsinceWinterSolstice(yy); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
+        sjd = this.GetSMsinceWinterSolstice(yy, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
         mc = this.GetZQandSMandLunarMonthCode(yy);
         var jdx = this.Jdays(yy, mm, dd, 12); //求出指定年月日之JD值
         if (Math.floor(jdx) < Math.floor(sjd[0] + 0.5)) {
             flag = 1;
-            sjd = this.GetSMsinceWinterSolstice(yy - 1); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
+            sjd = this.GetSMsinceWinterSolstice(yy - 1, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
             mc = this.GetZQandSMandLunarMonthCode(yy - 1);
         }
         for (var i = 0; i <= 14; i++) {
@@ -1208,7 +1382,7 @@ function paipan() {
         if (yy < -1000 || yy > 3000) { //適用於西元-1000年至西元3000年,超出此範圍誤差較大
             this.logs(1);
         }
-        sjd = this.GetSMsinceWinterSolstice(yy); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
+        sjd = this.GetSMsinceWinterSolstice(yy, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
         mc = this.GetZQandSMandLunarMonthCode(yy);
         runyue = 0; //若閏月旗標為0代表無閏月
         for (var j = 1; j <= 14; j++) { //確認指定年前一年11月開始各月是否閏月

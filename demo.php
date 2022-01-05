@@ -1,6 +1,5 @@
 <?php
 include(__DIR__ . '/lib/class.paipan.php');
-include(__DIR__ . '/lib/class.paipan.gx.php');
 $p = new paipan();
 
 $fm = $p->fatemaps(0, 1990, 1, 1, 12, 0, 0, 120, 35);

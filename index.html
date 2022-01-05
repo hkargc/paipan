@@ -141,7 +141,7 @@ function chg(){
 	txt += "\n\n";
 	
 	txt += "廿四节气:\n";
-	var jq = p.GetAdjustedJQ(yy);
+	var jq = p.GetAdjustedJQ(yy, false);
 	for(var i in jq){
 		var d = p.Jtime(jq[i]);
 
