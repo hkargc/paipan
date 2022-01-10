@@ -1,4 +1,6 @@
-//与寿星万年历进行比对,在index.htm页脚引入: <script language="javascript" src="/js/diff.js"></script>
+"use strict";
+//用于跟寿星万年历进行比对
+//使用方法: 在寿星万年历源码的 source/index.htm 页脚加入 <script language="javascript" src="/js/diff.js"></script>
 function loadJS(url, callback) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
@@ -23,15 +25,16 @@ function log(o){
 		console.log(arguments[i]);
 	}
 }
-function go(){
+function go(){ //廿四节气与寿星万年历比对
 	var h = [];
 	var c = 0; //1为秋分
-	var start = 2322147.76 - 7;
+	var start = 1457698.231017 - 14; //-721-12-17 - 14
 	var year = 0;
 	var fs = [];
 	
-	for0:for(var st=0; ; st++){ //1645, 9, 23 秋分
-		if(start + st >= 2561118){ //2436935,2561118
+	for0:for(var st=0; ; st++){
+		if(start + st >= 2561118){ //2300-01-01
+			log("End.");
 			break;
 		}
 		
@@ -48,22 +51,19 @@ function go(){
 		}
 		
 		var [year] = p.Jtime(A[0]);
-		var dj = p.GetAdjustedJQ(year);
+		var dj = p.GetAdjustedJQ(year, true);
 		B[0] = dj[18];
 		B[1] = dj[19];
 		B[2] = dj[20];
 		B[3] = dj[21];
 		B[4] = dj[22];
 		B[5] = dj[23];
-		var dj = p.GetAdjustedJQ(year+1);
+		var dj = p.GetAdjustedJQ(year+1, true);
 		for(var j=6; j<=23; j++){
 			B[j] = dj[j-6];
 		}
 		for(var j=0; j<24; j++){
-			if(A[j] <= 2322147){
-				continue;
-			}
-			
+
 			var i = (18 + j)%24;
 			
 			var [yy, mm, dd, hh, mt, ss] = p.Jtime(A[j]);
@@ -88,9 +88,9 @@ function go(){
 				
 				//log(p.jq[i])
 				
-				//log([yy, mm, dd, hh, mt, ss]);
-				//log([yy2, mm2, dd2, hh2, mt2, ss2]);
-				//break for0;
+				log([yy, mm, dd, hh, mt, ss]);
+				log([yy2, mm2, dd2, hh2, mt2, ss2]);
+				break for0;
 			}
 		}
 	}
@@ -99,7 +99,7 @@ function go(){
 	var sj = "var jqXFu = {\n";
 	for(var year in fs){
 		sp += (year + "=>[");
-		sj += (year + ":{");
+		sj += ((year<0?"'":"")+year+(year<0?"'":"") + ":{");
 		for(var i in fs[year]){
 			sp += (i+"=>"+fs[year][i]+",");
 			sj += (i+":"+fs[year][i]+",");
@@ -113,15 +113,16 @@ function go(){
 	log(sp);
 	log(sj)
 }
-function go2(){
+function go2(){ //朔望日与寿星万年历比对(很耗时)
 	var h = [];
 	var c = 0; //1为秋分
-	var start = 2322147.76;
+	var start = 1457698.231017 - 14; //-721-12-17 - 14
 	var year = 0;
 	var fs = [];
 	
-	for0:for(var st=0; ; st++){ //1645, 9, 23 秋分
-		if(start + st >= 2561118){ //2436935,2561118
+	for0:for(var st=0; ; st++){
+		if(start + st >=  2561118){ //2300-01-01
+			log("End.");
 			break;
 		}
 		var jd = start + st - 2451545;
@@ -135,11 +136,11 @@ function go2(){
 		for (var i = 0; i < 24; i++) {
 			A[i] = SSQ.calc(W + 15.2184 * i, '气') + 2451545; //24个节气时刻(北京时间),从冬至开始到下一个冬至以后
 		}
-		
-		w = SSQ.calc(A[0] - 2451545, '朔') + 2451545; //求较靠近冬至的朔日
+		var w = SSQ.calc(A[0] - 2451545, '朔') + 2451545; //求较靠近冬至的朔日
         if (w > A[0]) {
-            w -= 29.53;
+			w -= 29.53;
         }
+
 		var A = [];
         //该年所有朔,包含14个月的始末
         for (i = 0; i <= 15; i++) {
@@ -147,12 +148,9 @@ function go2(){
         }
 
 		var [year] = p.Jtime(A[0]);
-		var B = p.GetSMsinceWinterSolstice(year+1);
-
-		for(var j=0; j<15; j++){
-			
+		var B = p.GetSMsinceWinterSolstice(year+1, true);
+		for(var j=0; j<16; j++){
 			var [yy, mm, dd, hh, mt, ss] = p.Jtime(A[j]);
-			
 			var [yy2, mm2, dd2, hh2, mt2, ss2] = p.Jtime(B[j]);
 			
 			if((yy != yy2) || (mm != mm2) || (dd != dd2)){
@@ -165,16 +163,17 @@ function go2(){
 					fs[fy] = new Array();
 				}
 				fs[fy][fi] = fd;
-				
-				log(p.jq[i])
-				
-				log([yy, mm, dd, hh, mt, ss]);
-				log([yy2, mm2, dd2, hh2, mt2, ss2]);
+
+				//log("寿星:",[yy, mm, dd, hh, mt, ss]);
+				//log([yy2, mm2, dd2, hh2, mt2, ss2]);
+				log(A);
+				log(B);
+		
 				break for0;
 			}
 		}
 	}
-	
+
 	var sp = '';
 	var sj = "var smXFu = {\n";
 	for(var year in fs){
@@ -193,19 +192,74 @@ function go2(){
 	log(sp);
 	log(sj)
 }
-loadJS('/js/paipan.js', function(){
+function go3(){ //619-01-21至2300-01-01所有朔月
+	var tjd = new Array();
+	var tjd2 = new Array();
+
+	for(var jd = 1947148; jd <= 2561118; jd += 1){
+		var [yy, mm, dd] = p.Jtime(jd);
+		var jdnm = p.GetSMsinceWinterSolstice(yy, true);
+		
+		for(var i in jdnm){
+			jdnm[i] = Math.floor(jdnm[i] + 0.5);
+			if(tjd.indexOf(jdnm[i]) == -1){
+				tjd.push(jdnm[i]);
+			}
+		}
+	}
+	
+	var start = 1947148;
+	var fs = [];
+	for0:for(var st=0; ; st++){
+		if(start + st >= 2561118){
+			break;
+		}
+		var jd = start + st - 2451545;
+		var W = Math.floor((jd - 355 + 183) / 365.2422) * 365.2422 + 355; //355是2000.12冬至,得到较靠近jd的冬至估计值
+		if (SSQ.calc(W, '气') > jd) {
+			W -= 365.2422;
+		}
+
+		var A = [];
+		for (var i = 0; i < 24; i++) {
+			A[i] = SSQ.calc(W + 15.2184 * i, '气') + 2451545; //24个节气时刻(北京时间),从冬至开始到下一个冬至以后
+		}
+		var w = SSQ.calc(A[0] - 2451545, '朔') + 2451545; //求较靠近冬至的朔日
+        if (w > A[0]) {
+			w -= 29.53;
+        }
+        //该年所有朔,包含14个月的始末
+        for (i = 0; i <= 15; i++) {
+            var moon = SSQ.calc(w - 2451545 + 29.5306 * i, '朔') + 2451545;
+			if(tjd2.indexOf(moon) == -1){
+				tjd2.push(moon);
+			}
+		}
+	}
+	log(tjd);
+	log(tjd2);
+}
+loadJS('/js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
 		var ym = SSQ.ym.slice(2);
-		p.debug = false;
-		for(var Y=1646,M=1; Y <= 2300; M++){
+		p.debug = true;
+		for(var Y=800,M=1; Y <= 2300; M++){break;
+			for(var i = 0; i < 31; i++) {
+				lun.lun[i] = new Object();
+			}
 			lun.yueLiCalc(Y, M);
 			for(var i = 0; i <= 31; i++){
 				var a = lun.lun[i];
 				if(a == undefined){
 					break;
 				}
-
+				if(Object.keys(a).length == 0){
+					continue;
+				}
 				var [y, m, d, r] = p.Solar2Lunar(a.y, a.m, a.d);
-				
+				var [y3, m3, d3] = p.Lunar2Solar(y, m, d, r);
+				if((y3 != a.y) || (m3 != a.m) || (d3 != a.d)){
+					alert("出错: 农历不能逆转.")
+				}
 				var y2 = a.Lyear0 + 1984;
 				var m2 = ym.indexOf(a.Lmc) + 1;
 				var d2 = a.Ldi+1;
@@ -224,13 +278,16 @@ loadJS('/js/paipan.js', function(){
 				if(r != r2){
 					flag = false;
 				}
+				
+				//log("公历:"+a.y+"-"+a.m+"-"+a.d+":::::::::寿星:"+y2+"-"+m2+"-"+d2+":::::::::本尊:"+y+"-"+m+"-"+d+"-"+r+"::::"+flag);
+				
 				if(flag == false){
 					
 					var jd = p.Jdays(a.y, a.m, a.d, 24, 0, 0);
 					
 					log([a.y, a.m, a.d]);
 					log([y, m, d, r]);
-					log([y2, m2, d2, r2]);
+					log("寿星:",[y2, m2, d2, r2]);
 					var f = 1;
 					if(y > y2){
 						f = 1;
@@ -245,22 +302,14 @@ loadJS('/js/paipan.js', function(){
 					}else if(d < d2){
 						f = -1;
 					}
-					var W = p.GetSMsinceWinterSolstice(Y); //朔望月
-					for(var i=0; i<=15; i++){
-						if(W[i+1] > jd){
+					var W = p.GetSMsinceWinterSolstice(Y, true); //朔望月
+					for(var i2=0; i2<=15; i2++){
+						if(W[i2+1] > jd){
 							if(f < 0){
-								var [WY, WM, WD, WH, WI, WS] = p.Jtime(W[i+1]);
-								f = p.Jdays(WY, WM, WD-1, 23, 59, 59) - W[i+1];
-								f = parseInt(f*86400);
 								
-								log(Y+":{"+(i+1)+":"+f+"},");
 							}
 							if(f > 0){
-								var [WY, WM, WD, WH, WI, WS] = p.Jtime(W[i]);
-								f = p.Jdays(WY, WM, WD+1, 0, 0, 1) - W[i];
-								f = parseInt(f*86400);
-								
-								log(Y+":{"+i+":"+f+"},");
+					
 							}
 							break;
 						}
@@ -278,6 +327,5 @@ loadJS('/js/paipan.js', function(){
 				log(Y)
 			}
 		}
-
 });
 
