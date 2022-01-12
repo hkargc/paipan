@@ -1243,6 +1243,9 @@ class paipan{
 	 * 真太阳时模块,只取整数部份
 	 */
 	private function ipart($x) {
+		if($x == 0){
+			return 0;
+		}
 		return ($x / abs($x)) * floor(abs($x));
 	}
 	/**

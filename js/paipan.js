@@ -1227,6 +1227,9 @@ function paipan() {
 	 * 真太阳时模块,只取整数部份
 	 */
 	this.ipart = function(x) {
+		if(x == 0){
+			return 0;
+		}
 		return (x / Math.abs(x)) * Math.floor(Math.abs(x));
 	};
 	/**
