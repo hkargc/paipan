@@ -241,8 +241,9 @@ function go3(){ //619-01-21至2300-01-01所有朔月
 }
 loadJS('/js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
 		var ym = SSQ.ym.slice(2);
+		
 		p.debug = true;
-		for(var Y=800,M=1; Y <= 2300; M++){break;
+		for(var Y=2100,M=1; Y <= 2300; M++){//break; //公历转农历支持-721年至2300年,公农历互转支持-104年至2300年
 			for(var i = 0; i < 31; i++) {
 				lun.lun[i] = new Object();
 			}
@@ -255,21 +256,22 @@ loadJS('/js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
 				if(Object.keys(a).length == 0){
 					continue;
 				}
-				var [y, m, d, r] = p.Solar2Lunar(a.y, a.m, a.d);
-				var [y3, m3, d3] = p.Lunar2Solar(y, m, d, r);
-				if((y3 != a.y) || (m3 != a.m) || (d3 != a.d)){
-					alert("出错: 农历不能逆转.")
-				}
+				var [y, m, d, r, ob] = p.Solar2Lunar(a.y, a.m, a.d);
+				ob.ym = ob.ym.replace("月",''); //从ob中拿出的才能进行比对
+
 				var y2 = a.Lyear0 + 1984;
-				var m2 = ym.indexOf(a.Lmc) + 1;
+				var m2 = a.Lmc;
 				var d2 = a.Ldi+1;
 				var r2 = a.Lleap == '' ? false : true;
 				
+				if(m2 == '十三' || m2 == '后九'){
+					r2 = true;
+				}
 				var flag = true;
-				if(y != y2){
+				if(ob.yi != y2){
 					flag = false;
 				}
-				if(m != m2){
+				if(ob.ym != m2){
 					flag = false;
 				}
 				if(d != d2){
@@ -279,41 +281,20 @@ loadJS('/js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
 					flag = false;
 				}
 				
-				//log("公历:"+a.y+"-"+a.m+"-"+a.d+":::::::::寿星:"+y2+"-"+m2+"-"+d2+":::::::::本尊:"+y+"-"+m+"-"+d+"-"+r+"::::"+flag);
+				if(a.y > -104){ //这之后的才能逆转
+					var [y3, m3, d3] = p.Lunar2Solar(y, m, d, r);
+					if((y3 != a.y) || (m3 != a.m) || (d3 != a.d)){
+						log("出错: 农历不能逆转.");
+						flag = false;
+					}
+				}
+				
+				//log("公历:"+a.y+"-"+a.m+"-"+a.d+":::::::::寿星:"+y2+"-"+m2+"-"+d2+":::::::::本尊:"+ob.yi+"-"+ob.ym+"-"+d+"-"+r+"::::"+flag);
 				
 				if(flag == false){
-					
-					var jd = p.Jdays(a.y, a.m, a.d, 24, 0, 0);
-					
-					log([a.y, a.m, a.d]);
-					log([y, m, d, r]);
-					log("寿星:",[y2, m2, d2, r2]);
-					var f = 1;
-					if(y > y2){
-						f = 1;
-					}else if(y < y2){
-						f = -1;
-					}else if(m>m2){
-						f = 1;
-					}else if(m<m2){
-						f = -1;
-					}else if(d > d2){
-						f = 1;
-					}else if(d < d2){
-						f = -1;
-					}
-					var W = p.GetSMsinceWinterSolstice(Y, true); //朔望月
-					for(var i2=0; i2<=15; i2++){
-						if(W[i2+1] > jd){
-							if(f < 0){
-								
-							}
-							if(f > 0){
-					
-							}
-							break;
-						}
-					}
+
+					log("公历:"+a.y+"-"+a.m+"-"+a.d+":::::::::寿星:"+y2+"-"+m2+"-"+d2+":::::::::本尊:"+ob.yi+"-"+ob.ym+"-"+d+"-"+r+"::::"+flag);
+
 					break;
 				}
 			}

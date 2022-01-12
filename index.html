@@ -120,8 +120,9 @@ function chg(){
 	}
 	txt += "对应的农历为:"+s+"年"+(d[3]?'闰':'')+p.dxy[d[1]-1]+p.dxd[d[2]-1]+"\n\n";
 	
-	var runyue = p.GetRunyue(d[0]);
-	txt += "农历"+s+"年"+(runyue ? ("闰"+runyue+"月") : "无闰月")+"\n\n";
+	var d = p.Lunar2Solar(d[0], 1, 1, false);
+	var ob = d[3];
+	txt += "农历"+s+"年"+(ob.leap ? ("闰"+ob.leap+"月") : "无闰月")+"\n\n";
 	txt += "星期:"+p.wkd[p.GetWeek(yy, mm , dd)]+"\n\n";
 	txt += "星座:"+p.cxz[p.GetXZ(yy, mm , dd, hh, mt, ss)]+"\n\n";
 	
@@ -133,9 +134,9 @@ function chg(){
 	
 	txt += "此年("+s+")农历:\n";
 	for(var i=1; i<=12; i++){
-		txt += ""+p.dxy[i-1]+":"+p.GetLunarDays(d[0], i, false)+"天;";
-		if(i == runyue){
-			txt += "闰"+p.dxy[i-1]+":"+p.GetLunarDays(d[0], i, true)+"天;";
+		txt += ""+p.dxy[i-1]+":"+ob['days'][i][0]+"天;";
+		if(i == ob.leap){
+			txt += "闰"+p.dxy[i-1]+":"+ob['days'][i][1]+"天;";
 		}
 	}
 	txt += "\n\n";
