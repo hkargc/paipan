@@ -18,7 +18,7 @@ function paipan() {
 	/**
 	 * 缓存每年的节气计算结果
 	 */
-	this.JQ = new Array();
+	this.JQ = [];
     /**
      * 四柱是否区分 早晚子 时,true则23:00-24:00算成上一天
      */
@@ -1115,7 +1115,7 @@ function paipan() {
      * @var string s
      */
     this.logs = function(n, s) {
-        var m = new Array();
+        var m = [];
         m[0] = "超出計算能力";
         m[1] = "適用於西元-1000年至西元3000年,超出此範圍誤差較大";
         m[2] = "对应的干支不存在";
@@ -1257,7 +1257,7 @@ function paipan() {
 				z1 = z2;
 			}
 		}
-		return Array(xe, ye, z1, z2, nz);
+		return [xe, ye, z1, z2, nz];
 	};
 	/**
 	 * 真太阳时模块,returns sine of the altitude of either the sun or the moon given the modified julian day number at midnight UT and the hour of the UT day
@@ -1373,7 +1373,7 @@ function paipan() {
         var yy = this.floatval(yy);
         var mm = this.floatval(mm);
         var dd = this.floatval(dd);
-        var hh = this.floatval(hh);
+        var hh = (hh === undefined) ? 12 : this.floatval(hh);
         var mt = (mt === undefined) ? 0 : this.floatval(mt);
         var ss = (ss === undefined) ? 0 : this.floatval(ss);
         if (yy < -7000 || yy > 7000) { //超出計算能力
@@ -1438,7 +1438,7 @@ function paipan() {
         var mm = Math.floor(m);
         var dd = Math.floor(d);
 
-        return Array(yy, mm, dd, hh, mmt, ss);
+        return [yy, mm, dd, hh, mmt, ss];
     };
     /**
      * 驗證公历日期是否有效
@@ -1503,7 +1503,7 @@ function paipan() {
     this.MeanJQJD = function(yy) {
         var yy = this.intval(yy);
 
-        var jdez = new Array();
+        var jdez = [];
         var jdve = this.VE(yy);
         var ty = this.VE(yy + 1) - jdve; //求指定年的春分點及回歸年長
 
@@ -1513,7 +1513,7 @@ function paipan() {
         var tt = yy / 1000;
         var vp = 111.25586939 - 17.0119934518333 * tt - 0.044091890166673 * tt * tt - 4.37356166661345E-04 * tt * tt * tt + 8.16716666602386E-06 * tt * tt * tt * tt;
         var rvp = vp * 2 * Math.PI / 360;
-        var peri = new Array(30);
+        var peri = [];
         for (var i = 1; i <= 24; i++) {
             var flag = 0;
             var th = ath * (i - 1) + rvp;
@@ -1548,9 +1548,9 @@ function paipan() {
      */
     this.Perturbation = function(jdez) {
         var jdez = this.floatval(jdez);
-        var ptsa = new Array(485, 203, 199, 182, 156, 136, 77, 74, 70, 58, 52, 50, 45, 44, 29, 18, 17, 16, 14, 12, 12, 12, 9, 8);
-        var ptsb = new Array(324.96, 337.23, 342.08, 27.85, 73.14, 171.52, 222.54, 296.72, 243.58, 119.81, 297.17, 21.02, 247.54, 325.15, 60.93, 155.12, 288.79, 198.04, 199.76, 95.39, 287.11, 320.81, 227.73, 15.45);
-        var ptsc = new Array(1934.136, 32964.467, 20.186, 445267.112, 45036.886, 22518.443, 65928.934, 3034.906, 9037.513, 33718.147, 150.678, 2281.226, 29929.562, 31555.956, 4443.417, 67555.328, 4562.452, 62894.029, 31436.921, 14577.848, 31931.756, 34777.259, 1222.114, 16859.074);
+        var ptsa = [485, 203, 199, 182, 156, 136, 77, 74, 70, 58, 52, 50, 45, 44, 29, 18, 17, 16, 14, 12, 12, 12, 9, 8];
+        var ptsb = [324.96, 337.23, 342.08, 27.85, 73.14, 171.52, 222.54, 296.72, 243.58, 119.81, 297.17, 21.02, 247.54, 325.15, 60.93, 155.12, 288.79, 198.04, 199.76, 95.39, 287.11, 320.81, 227.73, 15.45];
+        var ptsc = [1934.136, 32964.467, 20.186, 445267.112, 45036.886, 22518.443, 65928.934, 3034.906, 9037.513, 33718.147, 150.678, 2281.226, 29929.562, 31555.956, 4443.417, 67555.328, 4562.452, 62894.029, 31436.921, 14577.848, 31931.756, 34777.259, 1222.114, 16859.074];
         var t = (jdez - 2451545) / 36525;
         var s = 0;
         for (var k = 0; k <= 23; k++) {
@@ -1657,9 +1657,9 @@ function paipan() {
      */
     this.GetAdjustedJQ = function(yy, calendar) {
         var yy = this.intval(yy);
-		var calendar = calendar ? true : false;
+		var calendar = calendar ? 1 : 0;
 		
-		var jdjq = new Array();
+		var jdjq = [];
 		if(this.JQ[yy] == undefined){
 			var jdez = this.MeanJQJD(yy); //輸入指定年,求該回歸年各節氣点
 			for (var i = 0; i < 24; i++) {
@@ -1672,7 +1672,7 @@ function paipan() {
 		}
         
 		var jdjq = this.JQ[yy].slice(0); //打破引用
-		if(calendar == true){ //古代农历模块完全来自寿星万年历
+		if(calendar == 1){ //古代农历模块完全来自寿星万年历
 			var B = this.qiKB; //气直线拟合参数
 			var pc = 7; //两气之间15天左右,7为中间偏一点以便找到最近的
 			var f1 = B[0] - pc; //1640650.479938 - 7, -221-11-09 h=0.01709 古历·秦汉开始至没有天文算法(定气定朔)之前,古人采取平气平朔的方法,各朝代改动较大,许老师从繁杂的古历中提取数据进行分析而得到算法,致敬!
@@ -1706,56 +1706,21 @@ function paipan() {
         return jdjq;
     };
     /**
-     * 求出自冬至點為起點的連續16個中氣
-     * @param int yy
-	 * @param bool calendar 是否根据黄历进行调整,调整后精度为日(仅用于农历计算)
-     * @return array this.jq[(2*i+18)%24]
-     */
-    this.GetZQsinceWinterSolstice = function(yy, calendar) {
-        var yy = this.intval(yy);
-		var calendar = calendar ? true : false;
-
-        var jdzq = new Array();
-
-        //求出以冬至為起點之連續16個中氣（多取四個以備用）
-        var dj = new Array(26);
-        dj = this.GetAdjustedJQ(yy - 1, calendar); //求出指定年冬至開始之節氣JD值,以前一年的值代入
-        //轉移春分前之節氣至jdzq變數中,以重整index
-        jdzq[0] = dj[18]; //此為冬至中氣
-        jdzq[1] = dj[20]; //此為大寒中氣
-        jdzq[2] = dj[22]; //此為雨水中氣
-        dj = this.GetAdjustedJQ(yy, calendar); //求出指定年節氣之JD值
-        for (var i = 0; i < 12; i++) {
-            jdzq[i + 3] = dj[2 * i]; //轉移春分後之節氣至jdzq變數中,以重整index
-        }
-		dj = this.GetAdjustedJQ(yy + 1, calendar); //求出指定年節氣之JD值
-		jdzq[15] = dj[0]; //此為春分中氣
-		
-        return jdzq;
-    };
-    /**
      * 求出某公历年以立春點開始的不含中氣之12節
      * @param int yy
      * @return array this.jq[(2*i+21)%24]
      */
     this.GetPureJQsinceSpring = function(yy) {
         var yy = this.intval(yy);
-
-        var jdpjq = new Array();
-        var sjdjq = this.GetAdjustedJQ(yy - 1, false); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
-        //轉移春分前之立春至驚蟄之節氣至jdpjq變數中,以重整index
-        jdpjq[0] = sjdjq[21]; //此為立春
-        jdpjq[1] = sjdjq[23]; //此為驚蟄
-
-        sjdjq = this.GetAdjustedJQ(yy, false); //求出指定年節氣之JD值,從清明開始,到惊蛰
-        for (var i = 0; i < 12; i++) {
-            jdpjq[i + 2] = sjdjq[2 * i + 1];
-        }
 		
-		sjdjq = this.GetAdjustedJQ(yy + 1, false);
-        jdpjq[14] = sjdjq[1]; //此為清明
-		
-        return jdpjq;
+		var pjq = [];
+		for(var i = -1,k = 0; i <= 1; i++){
+			var jq = this.GetAdjustedJQ(yy + i, false);
+			for(var j = 1; j <= 23; j += 2){
+				pjq[k++] = jq[j];
+			}
+		}
+		return pjq.slice(10, 25);
     };
     /**
      * 對於指定日期時刻所屬的朔望月,求出其均值新月點的月序數
@@ -1782,9 +1747,9 @@ function paipan() {
      */
     this.TrueNewMoon = function(jd, calendar) {
         var jd = this.floatval(jd);
-		var calendar = calendar ? true : false;
+		var calendar = calendar ? 1 : 0;
 		
-		if(calendar == true){ //先判断是否需要进行朔直线拟合
+		if(calendar == 1){ //先判断是否需要进行朔直线拟合
 			var B = this.suoKB; //朔直线拟合参数
 			var pc = 14; //两朔之间30天左右
 			var f1 = B[0] - pc; //1457698.231017 - 7, -721-12-17 h=0.00032
@@ -1884,53 +1849,41 @@ function paipan() {
 		return jdt;
     };
     /**
-     * 求算以含冬至中氣為陰曆11月開始的連續16個朔望月
-     * @param int yy 公历年份
-	 * @param bool calendar 是否根据黄历进行调整,调整后精度为日(仅用于农历计算)
-     * @return array
-     */
-    this.GetSMsinceWinterSolstice = function(yy, calendar) {
-        var yy = this.intval(yy);
-
-        var dj = this.GetAdjustedJQ(yy - 1, calendar); //求出指定年冬至開始之節氣JD值,以前一年的值代入
-        var jdws = dj[18]; //此為冬至中氣
-		
-		var tjd = new Array();
-        for (var i = 0; i <= 19; i++) { //求出連續20個朔望月.冬至在12月23日左右,此处前取两个朔望月兼顾1/3时差和修正,加14则兼顾步长
-		
-			tjd[i] = (i == 0) ? (jdws - 2 * this.synmonth) : (tjd[i - 1] + this.synmonth + 14); //经修正后的步长可能大于30
-			
-			tjd[i] = this.TrueNewMoon(tjd[i], calendar); //以jd值代入求瞬時朔望日
-        }
-        for (var j = 0; j <= 18; j++) {
-            if (Math.floor(tjd[j] + 0.5) > Math.floor(jdws + 0.5)) { //取此時的索引值
-                break;
-            } //已超過冬至中氣(比較日期法)
-        }
-		
-		var jdnm = new Array();
-        for (var k = 0; k <= 15; k++) {
-			jdnm[k] = tjd[j - 1 + k]; //重排索引,使含冬至朔望月的索引為0
-        }
-        return jdnm;
-    };
-    /**
      * 以比較日期法求算冬月及其餘各月名稱代碼,包含閏月,冬月為0,臘月為1,正月為2,餘類推。閏月多加0.5
      * @param int yy
+	 * @return array(各月名稱, 含冬至連續16個新月點, 冬至為起點之連續16個中氣)
      */
     this.GetZQandSMandLunarMonthCode = function(yy) {
         var yy = this.intval(yy);
+		
+		var mc = []; //名称 MingCheng
+		var sjd = []; //shuo jd
+		var qjd = []; //qi jd
 
-        var mc = new Array();
-        var jdzq = this.GetZQsinceWinterSolstice(yy, true); //取得以前一年冬至為起點之連續17個中氣
-        var jdnm = this.GetSMsinceWinterSolstice(yy, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
+		for(var i = -1,k = 0; i <= 1; i++){ //取得以前一年冬至為起點之連續16個中氣 qi jd
+			var jq = this.GetAdjustedJQ(yy + i, true);
+			for(var j = 0; j <= 22; j += 2){
+				qjd[k++] = jq[j];
+			}
+		}
+		var qjd = qjd.slice(9, 25);
+
+		var jd = qjd[0] - 2 * this.synmonth - 14; //冬至之前的29天起算,兼顾1/3时差及修正,加14则兼顾步长
+		for(var i = 0; i < 15; ){
+			jd = this.TrueNewMoon(jd + this.synmonth + 14, true);
+			if(Math.floor(jd + 0.5) > Math.floor(qjd[0] + 0.5)){
+				i++;
+			}
+			sjd[i] = jd;
+		}
+
         var yz = 0; //設定旗標,0表示未遇到閏月,1表示已遇到閏月
         mc[0] = 0;
-        if (Math.floor(jdzq[12] + 0.5) >= Math.floor(jdnm[13] + 0.5)) { //若第13個中氣jdzq(12)大於或等於第14個新月jdnm(13)
+        if (Math.floor(qjd[12] + 0.5) >= Math.floor(sjd[13] + 0.5)) { //若第13個中氣jdzq(12)大於或等於第14個新月jdnm(13)
             for (var i = 1; i <= 14; i++) { //表示此兩個冬至之間的11個中氣要放到12個朔望月中,
                 //至少有一個朔望月不含中氣,第一個不含中氣的月即為閏月
                 //若陰曆臘月起始日大於冬至中氣日,且陰曆正月起始日小於或等於大寒中氣日,則此月為閏月,其餘同理
-                if (Math.floor((jdnm[i] + 0.5) > Math.floor(jdzq[i - 1 - yz] + 0.5) && Math.floor(jdnm[i + 1] + 0.5) <= Math.floor(jdzq[i - yz] + 0.5))) {
+                if (Math.floor((sjd[i] + 0.5) > Math.floor(qjd[i - 1 - yz] + 0.5) && Math.floor(sjd[i + 1] + 0.5) <= Math.floor(qjd[i - yz] + 0.5))) {
                     mc[i] = i - 0.5;
                     yz = 1; //標示遇到閏月
                 } else {
@@ -1943,7 +1896,7 @@ function paipan() {
             }
             for (var i = 13; i <= 14; i++) { //處理次一置月年的11月與12月,亦有可能含閏月
                 //若次一陰曆臘月起始日大於附近的冬至中氣日,且陰曆正月起始日小於或等於大寒中氣日,則此月為閏月,次一正月同理。
-                if (Math.floor((jdnm[i] + 0.5) > Math.floor(jdzq[i - 1 - yz] + 0.5) && Math.floor(jdnm[i + 1] + 0.5) <= Math.floor(jdzq[i - yz] + 0.5))) {
+                if (Math.floor((sjd[i] + 0.5) > Math.floor(qjd[i - 1 - yz] + 0.5) && Math.floor(sjd[i + 1] + 0.5) <= Math.floor(qjd[i - yz] + 0.5))) {
                     mc[i] = i - 0.5;
                     yz = 1; //標示遇到閏月
                 } else {
@@ -1951,7 +1904,7 @@ function paipan() {
                 }
             }
         }
-        return mc;
+        return [mc, qjd, sjd];
     };
     /**
      * 将农历时间转换成公历时间
@@ -1984,10 +1937,9 @@ function paipan() {
 		}
 		var ob = { //返回附加资料
 			'leap':0, //闰月,以1为正月开始
-			'days':new Array() //每月多少天[5][1] = 30;表示该年闰五月30天
+			'days':[] //每月多少天[5][1] = 30;表示该年闰五月30天
 		};
-        var sjd = this.GetSMsinceWinterSolstice(yy, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
-        var mc = this.GetZQandSMandLunarMonthCode(yy);
+		var [mc, qjd, sjd] = this.GetZQandSMandLunarMonthCode(yy);
         var runyue = 0; //若閏月旗標為0代表無閏月
         for (var j = 1; j <= 14; j++) { //確認指定年前一年11月開始各月是否閏月
             if (mc[j] - Math.floor(mc[j]) > 0) { //若是,則將此閏月代碼放入閏月旗標內
@@ -1999,7 +1951,7 @@ function paipan() {
             }
         }
         var mx = mm + 2; //11月對應到1,12月對應到2,1月對應到3,2月對應到4,依此類推
-		var nofd = new Array(); //大概是number of day的意思
+		var nofd = []; //大概是number of day的意思
         for (var i = 0; i <= 14; i++) { //求算陰曆各月之大小,大月30天,小月29天,0为农历11月
             nofd[i] = Math.floor(sjd[i + 1] + 0.5) - Math.floor(sjd[i] + 0.5); //每月天數,加0.5是因JD以正午起算
 			if(mc[i] < 2){
@@ -2011,7 +1963,7 @@ function paipan() {
 			}
 			var j = (m == (mc[i] - 1)) ? 0 : 1; //是否闰月
 			if(ob.days[m] == undefined){
-				ob.days[m] = new Array();
+				ob.days[m] = [];
 			}
 			ob.days[m][j] = nofd[i];
         }
@@ -2052,7 +2004,7 @@ function paipan() {
 		}
 		var [yi, mi, dz] = this.Jtime(jdx);
 		
-        return Array(yi, mi, dz, ob);
+        return [yi, mi, dz, ob];
     };
     /**
      * 将公历时间转换成农历时间(古代历法来自寿星万年历)
@@ -2091,7 +2043,7 @@ function paipan() {
 			var dz = 0; //农历日期从1开始
 			var ry = 0; //是否闰月,只有闰九和闰十二
 			var ii = 0; //该公历日期在第几轮循环中
-			var ns = new Array(); //年首相关信息,NianShou
+			var ns = []; //年首相关信息,NianShou
 			for (var i = 0,step = 3; i <= step; i++) { //计算连续的正月初一,对应的农历日期必定在此范围内
 				var YY = yy + i - 1; //可能所在的农历年份
 				if (YY >= -220) { //秦汉历,19年7闰,年首为十月,mi=4为正月,闰年的末月置闰并取名"后九"月,1640641为历法生效时间公历-221.10.31
@@ -2117,7 +2069,7 @@ function paipan() {
 				step = ii + 1; //多算一个年初一以确定本年有多少个月
 			}
 			
-			var tjd = new Array();
+			var tjd = [];
 			for(var j = 0; j < 14; j++){ //逐步算出朔望日,得到闰月日期等
 				var jd = (j == 0) ? ns[ii] : this.TrueNewMoon(tjd[j - 1] + this.synmonth + 14, true); //以jd值代入求瞬時朔望日
 				if(mi + dz == 0){ //还没找到过
@@ -2147,11 +2099,10 @@ function paipan() {
 				}
 			}
 			
-			return Array(yi, mi, dz, ry, ob);
+			return [yi, mi, dz, ry, ob];
 		}
 		for(var ty = yy, flag = 0; ; ty--,flag = 1){
-			var sjd = this.GetSMsinceWinterSolstice(ty, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
-			var mc = this.GetZQandSMandLunarMonthCode(ty);
+			var [mc, qjd, sjd] = this.GetZQandSMandLunarMonthCode(ty);
 			if (Math.floor(jdx) >= Math.floor(sjd[0] + 0.5)) {
 				break;
 			}
@@ -2208,7 +2159,7 @@ function paipan() {
 		if (Dm == 1729794 || Dm == 1808699) {
 			ob.ym = '拾贰'; //239.12.13及23.12.02均为十二月,为避免两个连续十二月，此处改名
 		}
-        return Array(yi, mi, dz, ry, ob);
+        return [yi, mi, dz, ry, ob];
     };
     /**
      * 计算公历的某天是星期几(PHP中的date方法,此处演示儒略日历的转换作用)
@@ -2251,6 +2202,41 @@ function paipan() {
         var ndf = ndf1 + ndf2;
         return 30 + ((Math.abs(mm - 7.5) + 0.5) % 2) - (mm == 2) * (2 + ndf);
     };
+	/**
+     * 获取农历某个月有多少天
+     * @param int yy
+     * @param int mm
+     * @param bool ry 是否闰月
+     * @return number
+     */
+    this.GetLunarDays = function(yy, mm, ry){
+        yy = this.intval(yy);
+        mm = this.intval(mm);
+        ry = this.boolval(ry);
+        
+        var a = this.Lunar2Solar(yy, mm, 1, ry);
+		if(a == false){ //比如年份超出范围或该月不是闰月
+            return 0;
+        }
+        var ob = a[3];
+        var days = ob['days'];
+        return days[mm][ry?1:0];
+    };
+    /**
+     * 获取农历某年的闰月,0为无闰月
+     * @param int yy
+     * @return number
+     */
+    this.GetLeap = function (yy){
+        yy = this.intval(yy);
+        
+        var a = this.Lunar2Solar(yy, 1, 1, false);
+		if(a == false){
+            return 0;
+        }
+        var ob = a[3];
+        return ob['leap'];
+    };
     /**
      * 根据公历年月日精确计算星座下标
      * @param int yy
@@ -2261,7 +2247,7 @@ function paipan() {
      * @param int ss 秒数(0-59)
      * @return int|false this.cxz[xz]
      */
-    this.GetXZ = function(yy, mm, dd, hh, mt, ss) {
+	this.GetXZ = function(yy, mm, dd, hh, mt, ss) {
         var yy = this.intval(yy);
         var mm = this.intval(mm);
         var dd = this.intval(dd);
@@ -2277,16 +2263,16 @@ function paipan() {
         if (spcjd === false) {
             return false;
         }
-		
-		for(var ty = yy; ; ty--){
-			var zr = this.GetZQsinceWinterSolstice(ty, false);
-			if (spcjd >= zr[0]) {
+		for(var ty = yy; ; ty--){ //春分开始,以两气之间为单位
+			var jq = this.GetAdjustedJQ(ty, false);
+			if (spcjd >= jq[0]) {
 				break;
 			}
+			
 		}
-        for (var i = 0; i <= 13; i++) { //先找到指定時刻前後的中氣月首
-            if (spcjd < zr[i]) {
-                var xz = (i + 12 - 1) % 12;
+        for (var i = 0,xz = 2; i <= 22; i += 2) { //默认是春分之前的那个
+            if (spcjd < jq[i]) {
+                var xz = (i/2 - 1 + 3) % 12;
                 break;
             } //即為指定時刻所在的節氣月首JD值
         }
@@ -2330,8 +2316,8 @@ function paipan() {
 			}
 		}
         
-        var tg = new Array();
-        var dz = new Array();
+        var tg = [];
+        var dz = [];
         var ygz = ((ty + 4712 + 24) % 60 + 60) % 60;
         tg[0] = ygz % 10; //年干
         dz[0] = ygz % 12; //年支
@@ -2363,7 +2349,7 @@ function paipan() {
         tg[3] = hgz % 10; //時干
         dz[3] = hgz % 12; //時支
 
-        return Array(tg, dz);
+        return [tg, dz];
     };
     /**
      * 根据年干支计算所有合法的月干支
@@ -2373,7 +2359,7 @@ function paipan() {
     this.MGZ = function(ygz) {
 		var ygz = this.intval(ygz);
 		
-        var mgz = new Array();
+        var mgz = [];
 
         //var ygz = this.gz.indexOf(ygz);
 
@@ -2392,7 +2378,7 @@ function paipan() {
     this.HGZ = function(dgz) {
 		var dgz = this.intval(dgz);
 		
-        var hgz = new Array();
+        var hgz = [];
 
         //var dgz = this.gz.indexOf(dgz);
 
@@ -2481,7 +2467,7 @@ function paipan() {
             this.logs(1);
         }
 
-        var ifs = new Array(); //initial-final 返回一个含起止时间的数组
+        var ifs = []; //initial-final 返回一个含起止时间的数组
 
         for (var m = 0; m <= mx - 1; m++) {
             var yea = yeai + m * 60;
@@ -2555,7 +2541,7 @@ function paipan() {
             return false;
         }
 		
-		var rt = new Array(); //要返回的数组 return
+		var rt = []; //要返回的数组 return
 		
 		if(J !== undefined){ //有传参,需要转地方真太阳时
 			rt['pty'] = spcjd + (this.floatval(J) - this.J) * 4 * 60 / 86400; //计算地方平太阳时,每经度时差4分钟
@@ -2568,10 +2554,10 @@ function paipan() {
         var [yy, mm, dd, hh, mt, ss] = this.Jtime(spcjd); //假设hh传了>24的数字,此处修正
 
         var ta = 365.24244475; //一個廻歸年的天數
-        var nwx = new Array(0, 0, 0, 0, 0); //五行数量 number of WuXing 这里不计算藏干里的
-        var nyy = new Array(0, 0); //阴阳数量 number of YinYang 这里不计算藏干里的
+        var nwx = [0, 0, 0, 0, 0]; //五行数量 number of WuXing 这里不计算藏干里的
+        var nyy = [0, 0]; //阴阳数量 number of YinYang 这里不计算藏干里的
 
-        var szs = new Array(1, 6, 10, 9, 10, 9, 7, 0, 4, 3); //日干對地支爲"子"者所對應的運程代碼
+        var szs = [1, 6, 10, 9, 10, 9, 7, 0, 4, 3]; //日干對地支爲"子"者所對應的運程代碼
 
 		for(var ty = yy; ; ty--){
 			var jr = this.GetPureJQsinceSpring(ty); //取得自立春開始的非中氣之24節氣
@@ -2583,10 +2569,10 @@ function paipan() {
         var [tg, dz] = this.GetGZ(yy, mm, dd, hh, mt, ss);
 
         //計算年月日時辰等四柱干支的陰陽屬性和個數及五行屬性和個數
-        var yytg = new Array(); //YinYang TianGan
-        var yydz = new Array(); //YinYang DiZhi
-        var ewxtg = new Array(); //各天干对应的五行
-        var ewxdz = new Array(); //各地支对应的五行
+        var yytg = []; //YinYang TianGan
+        var yydz = []; //YinYang DiZhi
+        var ewxtg = []; //各天干对应的五行
+        var ewxdz = []; //各地支对应的五行
         for (var k = 0; k <= 3; k++) { //yytg:八字各柱天干之陰陽屬性,yydz:八字各柱地支之陰陽屬性,nyy[0]為陽之總數,nyy[1]為陰之總數
             yytg[k] = tg[k] % 2;
             nyy[yytg[k]] = nyy[yytg[k]] + 1; //求天干的陰陽並計算陰陽總數
@@ -2611,13 +2597,13 @@ function paipan() {
         rt['ewxdz'] = ewxdz; //各地支对应的五行
 
         //日主與地支藏干決定十神
-        var bzcg = new Array(); //各地支的藏干
-        var wxcg = new Array(); //各地支的藏干对应的五行
-        var yycg = new Array(); //各地支的藏干对应的阴阳
-        var bctg = new Array(); //各地支的藏干对应的文字
+        var bzcg = []; //各地支的藏干
+        var wxcg = []; //各地支的藏干对应的五行
+        var yycg = []; //各地支的藏干对应的阴阳
+        var bctg = []; //各地支的藏干对应的文字
         for (var i = 0; i <= 3; i++) { //0,1,2,3等四個
-            wxcg[i] = new Array();
-            yycg[i] = new Array();
+            wxcg[i] = [];
+            yycg[i] = [];
             for (var j = 0; j <= 2; j++) { //0,1,2等三個
                 var nzcg = this.zcg[dz[i]][j]; //取得藏干表中的藏干代碼,zcg為一 4X3 之array the number of 支藏干
                 if (nzcg >= 0) { //若存在則取出(若為-1,則代表空白)
@@ -2676,20 +2662,20 @@ function paipan() {
         rt['qyy_desc2'] = "每逢 " + jtd + " 年" + jt[1] + "月" + jt[2] + "日交大運"; //顯示每十年為一階段之起運時刻,分兩個五年以年天干和陽曆日期表示
         var qage = jqyy - ty; //起運年減去出生年再加一即為起運之歲數,從懷胎算起,出生即算一歲
 
-        rt['dy'] = new Array(); //大运
+        rt['dy'] = []; //大运
 
         //下面的回圈計算起迄歲,大運干支(及其對應的十神),衰旺吉凶
-        var zqage = new Array(); //起始歲數
-        var zboz = new Array(); //末端歲數
-        var zfman = new Array(); //大運月干代码
-        var zfmbn = new Array(); //大運月支代码
-        var zfma = new Array(); //大運月干文字
-        var zfmb = new Array(); //大運月支文字
-        var nzs = new Array(); //大运对应的十二长生
+        var zqage = []; //起始歲數
+        var zboz = []; //末端歲數
+        var zfman = []; //大運月干代码
+        var zfmbn = []; //大運月支代码
+        var zfma = []; //大運月干文字
+        var zfmb = []; //大運月支文字
+        var nzs = []; //大运对应的十二长生
         var mgz = ((10 + tg[1] - dz[1]) % 10) / 2 * 12 + dz[1]; //这里是根据天干地支代码计算月柱的六十甲子代码
         for (var k = 0; k <= 8; k++) { //求各階段的起迄歲數及該階段的大運
             if (rt['dy'][k] === undefined) {
-                rt['dy'][k] = new Array();
+                rt['dy'][k] = [];
             }
             //求起迄歲
             rt['dy'][k]['zqage'] = zqage[k] = qage + 1 + k * 10; //求各階段的起始歲數
@@ -2721,17 +2707,17 @@ function paipan() {
         }
 
         //求流年的數值表示值及對應的文字
-        var lyean = new Array(); //流年天干
-        var lyebn = new Array(); //流年地支
-        var lye = new Array(); //流年所對應的干支文字
+        var lyean = []; //流年天干
+        var lyebn = []; //流年地支
+        var lye = []; //流年所對應的干支文字
         for (var j = 0; j <= 89; j++) {
             var k = this.intval(j / 10); //大运
             var i = j % 10; //流年
             if (rt['dy'][k]['ly'] === undefined) { //大运对应的流年
-                rt['dy'][k]['ly'] = new Array();
+                rt['dy'][k]['ly'] = [];
             }
             if (rt['dy'][k]['ly'][i] === undefined) {
-                rt['dy'][k]['ly'][i] = new Array();
+                rt['dy'][k]['ly'][i] = [];
             }
             //lyean[j]=(ygz + j + qage) % 10;
             rt['dy'][k]['ly'][i]['age'] = j + qage + 1; //年龄(虚岁)
@@ -2749,9 +2735,9 @@ function paipan() {
         rt['nl'] = this.Solar2Lunar(yy, mm, dd); //农历生日
         rt['tg'] = tg; //八字天干数组
         rt['dz'] = dz; //八字地支数组
-        rt['sz'] = new Array(); //四柱字符
-        rt['ctg'] = new Array(); //天干字符
-        rt['cdz'] = new Array(); //地支字符
+        rt['sz'] = []; //四柱字符
+        rt['ctg'] = []; //天干字符
+        rt['cdz'] = []; //地支字符
         for (var i = 0; i <= 3; i++) {
             rt['sz'][i] = this.ctg[tg[i]] + this.cdz[dz[i]];
             rt['ctg'][i] = this.ctg[tg[i]];

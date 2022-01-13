@@ -1,7 +1,7 @@
 <?php
 /**
  * @author hkargc@139.com
- * @link https://github.com/hkargv/paipan 
+ * @link https://github.com/hkargv/paipan
  * 本日历及排盘类完全源于以下项目,本人仅作为代码搬运工,感谢项目作者的无私分享
  * 日历部分由bieyu.com搬运而来,其详细阐述了的历法转换原理及星体天文算法等,并提供了JS源码及部分PHP源码,项目地址: http://www.bieyu.com/
  * 农历校正及古代农历算法完全来自寿星万年历,感谢福建莆田第十中学许剑伟老师,项目地址: http://www.nongli.net/sxwnl/
@@ -16,9 +16,14 @@ class paipan{
 	 */
 	private $W = 35;
     /**
-     * 缓存每年的节气计算结果
+     * 缓存每年的节气计算结果Adjusted Jie Qi
      */
-    private $JQ = [];
+    private $AJQ = [];
+    /**
+     * 缓存农历相关的计算结果Month code月代码,Qi气 ,shuo moon朔望月
+     * @var array
+     */
+    private $MQS = [];
     /**
      * 均值朔望月長 synodic month (new Moon to new Moon)
      */
@@ -1190,7 +1195,7 @@ class paipan{
      * @$string s
      */
     private function logs($n, $s=null) {
-        $m = array();
+        $m = [];
         $m[0] = "超出計算能力";
         $m[1] = "適用於西元-1000年至西元3000年,超出此範圍誤差較大";
         $m[2] = "对应的干支不存在";
@@ -1243,9 +1248,9 @@ class paipan{
 	 * 真太阳时模块,只取整数部份
 	 */
 	private function ipart($x) {
-		if($x == 0){
-			return 0;
-		}
+	    if($x == 0){
+	        return 0;
+	    }
 		return ($x / abs($x)) * floor(abs($x));
 	}
 	/**
@@ -1273,7 +1278,7 @@ class paipan{
 				$z1 = $z2;
 			}
 		}
-		return array($xe, $ye, $z1, $z2, $nz);
+		return [$xe, $ye, $z1, $z2, $nz];
 	}
 	/**
 	 * 真太阳时模块,returns sine of the altitude of either the sun or the moon given the modified julian day number at midnight UT and the hour of the UT day
@@ -1385,7 +1390,7 @@ class paipan{
      * @param int $ss
      * @return false|number
      */
-    public function Jdays($yy, $mm, $dd, $hh, $mt = 0, $ss = 0) {
+    public function Jdays($yy, $mm, $dd, $hh = 12, $mt = 0, $ss = 0) {
         $yy = floatval($yy);
         $mm = floatval($mm);
         $dd = floatval($dd);
@@ -1454,7 +1459,7 @@ class paipan{
         $mm = floor($m);
         $dd = floor($d);
         
-        return array($yy, $mm, $dd, $hh, $mmt, $ss);
+        return [$yy, $mm, $dd, $hh, $mmt, $ss];
     }
     /**
      * 驗證公历日期是否有效
@@ -1519,7 +1524,7 @@ class paipan{
     private function MeanJQJD($yy) {
         $yy = intval($yy);
         
-        $jdez = array();
+        $jdez = [];
         $jdve = $this->VE($yy);
         $ty = $this->VE($yy + 1) - $jdve; //求指定年的春分點及回歸年長
         
@@ -1529,7 +1534,7 @@ class paipan{
         $tt = $yy / 1000;
         $vp = 111.25586939 - 17.0119934518333 * $tt - 0.044091890166673 * $tt * $tt - 4.37356166661345E-04 * $tt * $tt * $tt + 8.16716666602386E-06 * $tt * $tt * $tt * $tt;
         $rvp = $vp * 2 * M_PI / 360;
-        $peri = array();
+        $peri = [];
         for ($i = 1; $i <= 24; $i++) {
             $flag = 0;
             $th = $ath * ($i - 1) + $rvp;
@@ -1670,12 +1675,18 @@ class paipan{
 	 * @param bool $calendar 是否根据黄历进行调整,调整后精度为日(仅用于农历计算)
      * @return array $this->jq[$i%24]
      */
-    public function GetAdjustedJQ($yy, $calendar) {
+    private function GetAdjustedJQ($yy, $calendar) {
         $yy = intval($yy);
-        $calendar = $calendar ? true : false;
-        
-        $jdjq = array();
-        if(empty($this->JQ[$yy])){
+        $calendar = $calendar ? 1 : 0;
+
+        if($this->AJQ[$yy] && $this->AJQ[$yy][$calendar]){
+            return $this->AJQ[$yy][$calendar];
+        }
+        if(is_array($this->AJQ[$yy]) == false){
+            $this->AJQ[$yy] = [];
+        }
+        $jdjq = [];
+        if(empty($this->AJQ[$yy][0])){
             $jdez = $this->MeanJQJD($yy); //輸入指定年,求該回歸年各節氣点
             for ($i = 0; $i < 24; $i++) {
                 $ptb = $this->Perturbation($jdez[$i]); //取得受perturbation影響所需微調
@@ -1684,11 +1695,11 @@ class paipan{
                 $jdjq[$i] = $jdjq[$i] + 8 / 24; //因中國時間比格林威治時間先行8小時,即1/3日(由于农历基于此数据,此处必须为北京时间)
             }
             
-            $this->JQ[$yy] = $jdjq;
+            $this->AJQ[$yy][0] = $jdjq;
         }
         
-        $jdjq = $this->JQ[$yy];
-        if($calendar == true){ //古代农历模块完全来自寿星万年历
+        $jdjq = $this->AJQ[$yy][0]; //计算出来的结果
+        if($calendar == 1){ //古代农历模块完全来自寿星万年历
             $B = $this->qiKB; //气直线拟合参数
             $pc = 7; //两气之间15天左右,7为中间偏一点以便找到最近的
             $f1 = $B[0] - $pc; //1640650.479938 - 7, -221-11-09 h=0.01709 古历·秦汉开始至没有天文算法(定气定朔)之前,古人采取平气平朔的方法,各朝代改动较大,许老师从繁杂的古历中提取数据进行分析而得到算法,致敬!
@@ -1720,35 +1731,7 @@ class paipan{
             }
         }
         
-        return $jdjq;
-    }
-    /**
-     * 求出自冬至點為起點的連續16個中氣
-     * @param int $yy
-     * @param bool $calendar 是否根据黄历进行调整,调整后精度为日(仅用于农历计算)
-     * @return array $this->jq[(2*$i+18)%24]
-     */
-    private function GetZQsinceWinterSolstice($yy, $calendar) {
-        $yy = intval($yy);
-        $calendar = $calendar ? true : false;
-        
-        $jdzq = array();
-        
-        //求出以冬至為起點之連續16個中氣（多取四個以備用）
-        $dj = array();
-        $dj = $this->GetAdjustedJQ($yy - 1, $calendar); //求出指定年冬至開始之節氣JD值,以前一年的值代入
-        //轉移春分前之節氣至jdzq變數中,以重整index
-        $jdzq[0] = $dj[18]; //此為冬至中氣
-        $jdzq[1] = $dj[20]; //此為大寒中氣
-        $jdzq[2] = $dj[22]; //此為雨水中氣
-        $dj = $this->GetAdjustedJQ($yy, $calendar); //求出指定年節氣之JD值
-        for ($i = 0; $i < 12; $i++) {
-            $jdzq[$i + 3] = $dj[2 * $i]; //轉移冬至後之節氣至jdzq變數中,以重整index
-        }
-        $dj = $this->GetAdjustedJQ($yy + 1, $calendar); //求出指定年節氣之JD值
-        $jdzq[15] = $dj[0]; //此為春分中氣
-        
-        return $jdzq;
+        return $this->AJQ[$yy][$calendar] = $jdjq;
     }
     /**
      * 求出某公历年以立春點開始的不含中氣之12節
@@ -1758,20 +1741,14 @@ class paipan{
     private function GetPureJQsinceSpring($yy) {
         $yy = intval($yy);
         
-        $jdpjq = array();
-        $sjdjq = $this->GetAdjustedJQ($yy - 1, false); //求出含指定年立春開始之3個節氣JD值,以前一年的年值代入
-        //轉移春分前之立春至驚蟄之節氣至jdpjq變數中,以重整index
-        $jdpjq[0] = $sjdjq[21]; //此為立春
-        $jdpjq[1] = $sjdjq[23]; //此為驚蟄
-        $sjdjq = $this->GetAdjustedJQ($yy, false); //求出指定年節氣之JD值,從驚蟄開始,到雨水
-        //轉移春分至小寒之節氣至jdpjq變數中,以重整index
-        for ($i = 0; $i < 12; $i++) {
-            $jdpjq[$i + 2] = $sjdjq[2 * $i + 1];
+        $pjq = [];
+        for($i = -1,$k = 0; $i <= 1; $i++){
+            $jq = $this->GetAdjustedJQ($yy + $i, false);
+            for($j = 1; $j <= 23; $j += 2){
+                $pjq[$k++] = $jq[$j];
+            }
         }
-        $sjdjq = $this->GetAdjustedJQ($yy + 1, false);
-        $jdpjq[14] = $sjdjq[1]; //此為清明
-        
-        return $jdpjq;
+        return array_slice($pjq, 10, 15);
     }
     /**
      * 對於指定日期時刻所屬的朔望月,求出其均值新月點的月序數
@@ -1798,9 +1775,9 @@ class paipan{
      */
     private function TrueNewMoon($jd, $calendar) {
         $jd = floatval($jd);
-        $calendar = $calendar ? true : false;
+        $calendar = $calendar ? 1 : 0;
         
-        if($calendar == true){ //先判断是否需要进行朔直线拟合
+        if($calendar == 1){ //先判断是否需要进行朔直线拟合
             $B = $this->suoKB; //朔直线拟合参数
             $pc = 14; //两朔之间30天左右
             $f1 = $B[0] - $pc; //1457698.231017 - 7, -721-12-17 h=0.00032
@@ -1901,51 +1878,44 @@ class paipan{
         return $jdt;
     }
     /**
-     * 求算以含冬至中氣為陰曆11月開始的連續16個朔望月
-     * @param int $yy 公历年份
-     * @param bool $calendar 是否根据黄历进行调整,调整后精度为日(仅用于农历计算)
-     * @return array
-     */
-    private function GetSMsinceWinterSolstice($yy, $calendar) {
-        $yy = intval($yy);
-
-        $dj = $this->GetAdjustedJQ($yy - 1, $calendar); //求出指定年冬至開始之節氣JD值,以前一年的值代入
-        $jdws = $dj[18]; //此為冬至中氣
-        
-        $tjd = array();
-        for ($i = 0; $i <= 19; $i++) { //求出連續20個朔望月.冬至在12月23日左右,此处前取两个朔望月兼顾1/3时差和修正,加14则兼顾步长
-            $tjd[$i] = ($i == 0) ? ($jdws - 2 * $this->synmonth) : ($tjd[$i - 1] + $this->synmonth + 14); //经修正后的步长可能大于30
-            $tjd[$i] = $this->TrueNewMoon($tjd[$i], $calendar); //以jd值代入求瞬時朔望日
-        }
-        for ($j = 0; $j <= 18; $j++) {
-            if (floor($tjd[$j] + 0.5) > floor($jdws + 0.5)) { //取此時的索引值
-                break;
-            } //已超過冬至中氣(比較日期法)
-        }
-        
-        $jdnm = array();
-        for ($k = 0; $k <= 15; $k++) {
-            $jdnm[$k] = $tjd[$j - 1 + $k]; //重排索引,使含冬至朔望月的索引為0
-        }
-        return $jdnm;
-    }
-    /**
      * 以比較日期法求算冬月及其餘各月名稱代碼,包含閏月,冬月為0,臘月為1,正月為2,餘類推。閏月多加0.5
      * @param int $yy
+     * @return array(各月名稱, 含冬至連續16個新月點, 冬至為起點之連續16個中氣)
      */
     private function GetZQandSMandLunarMonthCode($yy) {
         $yy = intval($yy);
         
-        $mc = array();
-        $jdzq = $this->GetZQsinceWinterSolstice($yy, true); //取得以前一年冬至為起點之連續17個中氣
-        $jdnm = $this->GetSMsinceWinterSolstice($yy, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
+        if($this->MQS[$yy]){
+            return $this->MQS[$yy];
+        }
+        
+        $mc = [];
+        $sjd = []; //shuo jd
+        $qjd = []; //qi jd
+        
+        for($i = -1,$k = 0; $i <= 1; $i++){ //取得以前一年冬至為起點之連續16個中氣 qi jd
+            $jq = $this->GetAdjustedJQ($yy + $i, true);
+            for($j = 0; $j <= 22; $j += 2){
+                $qjd[$k++] = $jq[$j];
+            }
+        }
+        $qjd = array_slice($qjd, 9, 16);
+        
+        $jd = $qjd[0] - 2 * $this->synmonth - 14; //冬至之前的29天起算,兼顾1/3时差及修正,加14则兼顾步长
+        for($i = 0; $i < 15; ){
+            $jd = $this->TrueNewMoon($jd + $this->synmonth + 14, true);
+            if(floor($jd + 0.5) > floor($qjd[0] + 0.5)){
+                $i++;
+            }
+            $sjd[$i] = $jd;
+        }
         $yz = 0; //設定旗標,0表示未遇到閏月,1表示已遇到閏月
         $mc[0] = 0;
-        if (floor($jdzq[12] + 0.5) >= floor($jdnm[13] + 0.5)) { //若第13個中氣jdzq(12)大於或等於第14個新月jdnm(13)
+        if (floor($qjd[12] + 0.5) >= floor($sjd[13] + 0.5)) { //若第13個中氣jdzq(12)大於或等於第14個新月jdnm(13)
             for ($i = 1; $i <= 14; $i++) { //表示此兩個冬至之間的11個中氣要放到12個朔望月中,
                 //至少有一個朔望月不含中氣,第一個不含中氣的月即為閏月
                 //若陰曆臘月起始日大於冬至中氣日,且陰曆正月起始日小於或等於大寒中氣日,則此月為閏月,其餘同理
-                if (floor(($jdnm[$i] + 0.5) > floor($jdzq[$i - 1 - $yz] + 0.5) && floor($jdnm[$i + 1] + 0.5) <= floor($jdzq[$i - $yz] + 0.5))) {
+                if (floor(($sjd[$i] + 0.5) > floor($qjd[$i - 1 - $yz] + 0.5) && floor($sjd[$i + 1] + 0.5) <= floor($qjd[$i - $yz] + 0.5))) {
                     $mc[$i] = $i - 0.5;
                     $yz = 1; //標示遇到閏月
                 } else {
@@ -1958,7 +1928,7 @@ class paipan{
             }
             for ($i = 13; $i <= 14; $i++) { //處理次一置月年的11月與12月,亦有可能含閏月
                 //若次一陰曆臘月起始日大於附近的冬至中氣日,且陰曆正月起始日小於或等於大寒中氣日,則此月為閏月,次一正月同理。
-                if (floor(($jdnm[$i] + 0.5) > floor($jdzq[$i - 1 - $yz] + 0.5) && floor($jdnm[$i + 1] + 0.5) <= floor($jdzq[$i - $yz] + 0.5))) {
+                if (floor(($sjd[$i] + 0.5) > floor($qjd[$i - 1 - $yz] + 0.5) && floor($sjd[$i + 1] + 0.5) <= floor($qjd[$i - $yz] + 0.5))) {
                     $mc[$i] = $i - 0.5;
                     $yz = 1; //標示遇到閏月
                 } else {
@@ -1966,7 +1936,7 @@ class paipan{
                 }
             }
         }
-        return $mc;
+        return $this->MQS[$yy] = [$mc, $qjd, $sjd];
     }
     /**
      * 将农历时间转换成公历时间
@@ -1999,10 +1969,11 @@ class paipan{
         }
         $ob = array( //返回附加资料
             'leap' => 0, //闰月,以1为正月开始
-            'days' => array() //每月多少天[5][1] = 30;表示该年闰五月30天
+            'days' => [] //每月多少天[5][1] = 30;表示该年闰五月30天
         );
-        $sjd = $this->GetSMsinceWinterSolstice($yy, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
-        $mc = $this->GetZQandSMandLunarMonthCode($yy);
+        
+        [$mc, $qjd, $sjd] = $this->GetZQandSMandLunarMonthCode($yy);
+        
         $runyue = 0; //若閏月旗標為0代表無閏月
         for ($j = 1; $j <= 14; $j++) { //確認指定年前一年11月開始各月是否閏月
             if ($mc[$j] - floor($mc[$j]) > 0) { //若是,則將此閏月代碼放入閏月旗標內
@@ -2063,7 +2034,7 @@ class paipan{
         }
         [$yi, $mi, $dz] = $this->Jtime($jdx);
         
-        return array($yi, $mi, $dz, $ob);
+        return [$yi, $mi, $dz, $ob];
     }
     /**
      * 将公历时间转换成农历时间(古代历法来自寿星万年历)
@@ -2102,7 +2073,7 @@ class paipan{
             $dz = 0; //农历日期从1开始
             $ry = 0; //是否闰月,只有闰九和闰十二
             $ii = 0; //该公历日期在第几轮循环中
-            $ns = array(); //年首相关信息,NianShou
+            $ns = []; //年首相关信息,NianShou
             for ($i = 0,$step = 3; $i <= $step; $i++) { //计算连续的正月初一,对应的农历日期必定在此范围内
                 $YY = $yy + $i - 1; //可能所在的农历年份
                 if ($YY >= -220) { //秦汉历,19年7闰,年首为十月,mi=4为正月,闰年的末月置闰并取名"后九"月,1640641为历法生效时间公历-221.10.31
@@ -2128,7 +2099,7 @@ class paipan{
                 $step = $ii + 1; //多算一个年初一以确定本年有多少个月
             }
             
-            $tjd = array();
+            $tjd = [];
             for($j = 0; $j < 14; $j++){ //逐步算出朔望日,得到闰月日期等
                 $jd = ($j == 0) ? $ns[$ii] : $this->TrueNewMoon($tjd[$j - 1] + $this->synmonth + 14, true); //以jd值代入求瞬時朔望日
                 if($mi + $dz == 0){ //还没找到过
@@ -2158,11 +2129,10 @@ class paipan{
                 }
             }
             
-            return array($yi, $mi, $dz, $ry, $ob);
+            return [$yi, $mi, $dz, $ry, $ob];
         }
         for($ty = $yy, $flag = 0; ; $ty--,$flag = 1){
-            $sjd = $this->GetSMsinceWinterSolstice($ty, true); //求出以含冬至中氣為陰曆11月(冬月)開始的連續16個朔望月的新月點
-            $mc = $this->GetZQandSMandLunarMonthCode($ty);
+            [$mc, $qjd, $sjd] = $this->GetZQandSMandLunarMonthCode($ty);
             if (floor($jdx) >= floor($sjd[0] + 0.5)) {
                 break;
             }
@@ -2220,7 +2190,7 @@ class paipan{
         if ($Dm == 1729794 || $Dm == 1808699) {
             $ob['ym'] = '拾贰'; //239.12.13及23.12.02均为十二月,为避免两个连续十二月，此处改名
         }
-        return array($yi, $mi, $dz, $ry, $ob);
+        return [$yi, $mi, $dz, $ry, $ob];
     }
     /**
      * 计算公历的某天是星期几(PHP中的date方法,此处演示儒略日历的转换作用)
@@ -2322,16 +2292,15 @@ class paipan{
         if ($spcjd === false) {
             return false;
         }
-        
-        for($ty = $yy; ; $ty--){
-            $zr = $this->GetZQsinceWinterSolstice($ty, false);
-            if ($spcjd >= $zr[0]) {
+        for($ty = $yy; ; $ty--){ //春分开始,以两气之间为单位
+            $jq = $this->GetAdjustedJQ($ty, false);
+            if ($spcjd >= $jq[0]) {
                 break;
             }
         }
-        for ($i = 0; $i <= 13; $i++) { //先找到指定時刻前後的中氣月首
-            if ($spcjd < $zr[$i]) {
-                $xz = ($i + 12 - 1) % 12;
+        for ($i = 0,$xz = 2; $i <= 22; $i += 2) { //默认是春分之前的那个
+            if ($spcjd < $jq[$i]) {
+                $xz = ($i/2 - 1 + 3) % 12;
                 break;
             } //即為指定時刻所在的節氣月首JD值
         }
@@ -2375,8 +2344,8 @@ class paipan{
             }
         }
         
-        $tg = array();
-        $dz = array();
+        $tg = [];
+        $dz = [];
         $ygz = (($ty + 4712 + 24) % 60 + 60) % 60;
         $tg[0] = $ygz % 10; //年干
         $dz[0] = $ygz % 12; //年支
@@ -2408,7 +2377,7 @@ class paipan{
         $tg[3] = $hgz % 10; //時干
         $dz[3] = $hgz % 12; //時支
         
-        return array($tg, $dz);
+        return [$tg, $dz];
     }
     /**
      * 根据年干支计算所有合法的月干支
@@ -2418,7 +2387,7 @@ class paipan{
     public function MGZ($ygz) {
         $ygz = intval($ygz);
         
-        $mgz = array();
+        $mgz = [];
         
         //$ygz = array_search($ygz, $this->gz);
         
@@ -2437,7 +2406,7 @@ class paipan{
     public function HGZ($dgz) {
         $dgz = intval($dgz);
         
-        $hgz = array();
+        $hgz = [];
         
         //$dgz = array_search($dgz, $this->gz);
         
@@ -2527,7 +2496,7 @@ class paipan{
             $this->logs(1);
         }
         
-        $ifs = array(); //initial-final 返回一个含起止时间的数组
+        $ifs = []; //initial-final 返回一个含起止时间的数组
         
         for ($m = 0; $m <= $mx - 1; $m++) {
             $yea = $yeai + $m * 60;
