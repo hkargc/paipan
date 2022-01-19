@@ -2,4 +2,5 @@
 * text=auto
 *.js linguist-language=PHP
 *.php linguist-language=PHP
+*.htm linguist-language=PHP
 *.html linguist-language=PHP
