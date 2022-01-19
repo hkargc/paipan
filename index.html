@@ -60,6 +60,55 @@ function chg(){
 		$('#text').val("请选择城市!");
 		return false;
 	}
+	var txt = '';
+	
+	var d = new Date();
+	var yy = d.getFullYear();
+	var mm = d.getMonth() + 1;
+	var dd = d.getDate();
+	var hh = d.getHours();
+	var mt = d.getMinutes();
+	var ss = d.getSeconds();
+	var now = p.Jdays(yy, mm, dd, 12, 0, 0); //今天的儒略日
+	
+	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss); //不考虑真太阳时
+	txt += "本机时间:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n";
+	var y = fm.nl[0].toString().split("");
+	var s = '';
+	for(var i=0; i<y.length; i++){
+		s += p.dxs[y[i]];
+	}
+	txt += "农历日期:"+s+"年"+(fm.nl[3]?'闰':'')+p.dxy[fm.nl[1]-1]+p.dxd[fm.nl[2]-1]+"\n";
+	var [y, m, d] = p.Lunar2Solar(fm.nl[0] + 1, 1, 1, false); //农历年初一
+	txt += "大年初一:"+y+"年"+m+"月"+d+"日\n";
+	
+	var jd = p.Jdays(y, m, d, 12, 0, 0) - 1; //年初一的儒略日减一为年三十或年廿九,不知道它闰不闰也不知道它大还是小,所以倒推
+	 
+	var [y, m, d] = p.Jtime(jd);
+	txt += "大年三十:"+y+"年"+m+"月"+d+"日[倒计时:"+(jd - now)+"天]\n";
+	
+	var jq = p.GetAdjustedJQ(yy - 1, false);
+	var days = now - Math.floor(jq[18] + 0.5); //距离冬至的天数
+	if((days >= 0) && (days <= 81)){ //冬至
+		txt += p.dxs[(parseInt(days / 9) + 1)] + "九第" + ((days % 9) + 1) + "天\n";
+	}
+
+	var jq = p.GetAdjustedJQ(yy, false);
+	var [y, m, d] = p.Jtime(jq[6]); //夏至
+	var gz = p.GetGZ(y, m, d, 12, 0, 0); //夏至那天的干支
+	var days = (6 >= gz[0][2]) ? (6 - gz[0][2]) : (6 - gz[0][2] + 12); 
+	var jd = jq[6] + days + 20; //夏至日干离第三个"庚"日的日数,计算初伏
+	var [y, m, d] = p.Jtime(jd);
+	txt += "初伏开始:"+y+"年"+m+"月"+d+"日\n";
+
+	var jd = p.Jdays(yy, 6, 1, 12, 0, 0);
+	var w = p.GetWeek(yy, 6, 1); //今年6月1日为星期几
+	var days = (0 - w + 7); //离第一个周日还有多少天
+	jd = jd + days + 2 * 7; //第三个周日
+	var [y, m, d] = p.Jtime(jd);
+	txt += "父亲节:"+y+"年"+m+"月"+d+"日\n";
+	
+	txt += "\n\n\n\n";
 	var jw = JW[id];
 	var yy = parseInt($("#yy").val());
 	var mm = parseInt($("#mm").val());
@@ -76,7 +125,6 @@ function chg(){
 	
 	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss, jw[2]+jw[3]/60, jw[4]+jw[5]/60); //此处演示真太阳时排盘
 
-	var txt = '';
 	txt += "公历北京时间为:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n\n";
 	txt += "本地平太阳时为:"+fm['pty'][0]+"年"+fm['pty'][1]+"月"+fm['pty'][2]+"日"+fm['pty'][3]+"时"+fm['pty'][4]+"分"+fm['pty'][5]+"秒"+"\n\n";
 	txt += "本地真太阳时为:"+fm['zty'][0]+"年"+fm['zty'][1]+"月"+fm['zty'][2]+"日"+fm['zty'][3]+"时"+fm['zty'][4]+"分"+fm['zty'][5]+"秒"+"\n\n";

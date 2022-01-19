@@ -2,6 +2,16 @@
 include(__DIR__ . '/lib/class.paipan.php');
 $p = new paipan();
 
+if($_POST['act'] == 'fatemaps'){
+    $p->zwz = false;
+    
+    $d = $_POST['param'];
+    
+    $o = $p->fatemaps($d[0],$d[1],$d[2],$d[3],$d[4],$d[5],$d[6],$d[7],$d[8]);
+    
+    die(json_encode($o));
+}
+
 $fm = $p->fatemaps(0, 1990, 1, 1, 12, 0, 0, 120, 35);
 
 print_r($fm);

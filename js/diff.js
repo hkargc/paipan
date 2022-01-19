@@ -1,6 +1,6 @@
 "use strict";
 //用于跟寿星万年历进行比对
-//使用方法: 在寿星万年历源码的 source/index.htm 页脚加入 <script language="javascript" src="/js/diff.js"></script>
+//使用方法: 在寿星万年历的 sxwnl/source/index.htm 页脚加入 <script language="javascript" src="../../js/diff.js"></script> 浏览器中打开开发者工具,浏览 https://....sxwnl/source/index.htm
 function loadJS(url, callback) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
@@ -239,16 +239,17 @@ function go3(){ //619-01-21至2300-01-01所有朔月
 	log(tjd);
 	log(tjd2);
 }
-loadJS('/js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
+loadJS('../../js/jquery-3.6.0.min.js', function(){
+	loadJS('../../js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
 		var ym = SSQ.ym.slice(2);
 		
 		p.debug = true;
-		for(var Y=2100,M=1; Y <= 2300; M++){//break; //公历转农历支持-721年至2300年,公农历互转支持-104年至2300年
+		for(var Y=2000,M=1; Y <= 2010; M++){//break; //公历转农历支持-721年至2300年,公农历互转支持-104年至2300年
 			for(var i = 0; i < 31; i++) {
 				lun.lun[i] = new Object();
 			}
 			lun.yueLiCalc(Y, M);
-			for(var i = 0; i <= 31; i++){
+			for(var i = 0; ; i++){
 				var a = lun.lun[i];
 				if(a == undefined){
 					break;
@@ -297,6 +298,54 @@ loadJS('/js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
 
 					break;
 				}
+				
+				for(var h = 0; h <= 24; h += 1){
+					var ob = new Object();
+
+					var jd = JD.JD(a.y, a.m, a.d + h / 24);
+
+					var j = parseInt(Math.random() * (134 - 75 + 1) + 75, 10); //真太阳时存在20秒左右的差别
+
+					obb.mingLiBaZi(jd+curTZ/24-J2000, j/radd, ob); //八字计算
+					
+					p.zwz = false; //寿星不考虑早晚子
+					var fm = p.fatemaps(0, a.y, a.m, a.d, h, 0, 0, j, 35); //寿星不考虑纬度
+					if(false){ //与PHP比对
+						var fm;
+						$.ajax({
+							type: "POST",
+							url: "../../demo.php",
+							data: {
+								act: 'fatemaps',
+								param: [0, a.y, a.m, a.d, h, 0, 0, j, 35]
+							},
+							async: false,
+							cache: false,
+							dataType: 'json',
+							success: function(o) {
+								fm = o;
+							}
+						});
+					}
+					if(a.XiZ != fm.xz+"座"){ //寿星精确到日定星座,本项目精确到秒定星座,所以在节气交接日会出现差别
+						//log("星座不一致:\t"+a.y+"年"+a.m+"月"+a.d+"日"+h+"时\t"+a.XiZ+fm.xz+"\t真太阳相差:"+zty+"秒\t经度:"+j);
+					}
+					
+					var zty = (timeStr2hour(ob.bz_zty) - timeStr2hour(fm['zty'][3]+":"+fm['zty'][4]+":"+fm['zty'][5])) * 60 * 60;
+					
+					if(ob.bz_jn != fm['sz'][0]){ //年月柱的差别是由于以下原因导致: 1,节气计算存在20秒左右的差别;2,寿星的年月柱计算不采用真太阳时
+						log("年柱不一致:\t"+a.y+"年"+a.m+"月"+a.d+"日"+h+"时\t"+ob.bz_jn+fm['sz'][0]+"\t真太阳相差:["+ob.bz_zty+"]["+fm['zty'][3]+":"+fm['zty'][4]+":"+fm['zty'][5]+"]"+zty+"秒\t经度:"+j);
+					}
+					if(ob.bz_jy != fm['sz'][1]){
+						log("月柱不一致:\t"+a.y+"年"+a.m+"月"+a.d+"日"+h+"时\t"+ob.bz_jy+fm['sz'][1]+"\t真太阳相差:["+ob.bz_zty+"]["+fm['zty'][3]+":"+fm['zty'][4]+":"+fm['zty'][5]+"]"+zty+"秒\t经度:"+j);
+					}
+					if(ob.bz_jr != fm['sz'][2]){ //日时柱的差别: 1,真太阳时存在20秒左右的差别;
+						log("日柱不一致:\t"+a.y+"年"+a.m+"月"+a.d+"日"+h+"时\t"+ob.bz_jr+fm['sz'][2]+"\t真太阳相差:["+ob.bz_zty+"]["+fm['zty'][3]+":"+fm['zty'][4]+":"+fm['zty'][5]+"]"+zty+"秒\t经度:"+j);
+					}
+					if(ob.bz_js != fm['sz'][3]){
+						log("时柱不一致:\t"+a.y+"年"+a.m+"月"+a.d+"日"+h+"时\t"+ob.bz_js+fm['sz'][3]+"\t真太阳相差:["+ob.bz_zty+"]["+fm['zty'][3]+":"+fm['zty'][4]+":"+fm['zty'][5]+"]"+zty+"秒\t经度:"+j);
+					}
+				}
 			}
 			if(flag === false){
 				break;
@@ -308,5 +357,7 @@ loadJS('/js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
 				log(Y)
 			}
 		}
+	});
 });
+
 

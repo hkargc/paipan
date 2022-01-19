@@ -95,7 +95,9 @@ function infinity() {
 					var select = this.mkselect();
 					select.appendChild(this.mkoption());
 				}
-				select.appendChild(this.mkoption(i, this.data[i][1]));
+				var option = this.mkoption(i, this.data[i][1]);
+				select.appendChild(option);
+				option.selected = (select.value == this.optionValue) ? 'selected' : '';
 			}
 		}
 		if (typeof(select) != 'undefined') {
