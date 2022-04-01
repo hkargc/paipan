@@ -1,7 +1,9 @@
 "use strict";
 //用于跟寿星万年历进行比对
 //使用方法: 在寿星万年历的 sxwnl/source/index.htm 页脚加入 <script language="javascript" src="../../js/diff.js"></script> 浏览器中打开开发者工具,浏览 https://....sxwnl/source/index.htm
-function loadJS(url, callback) {
+
+window.src = document.currentScript.src + "/../";
+function loadJS(js, callback) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
 	script.charset = 'UTF-8';
@@ -17,7 +19,8 @@ function loadJS(url, callback) {
             callback();
         };
     }
-    script.src = url;
+
+    script.src = window.src + js;
     document.getElementsByTagName('head')[0].appendChild(script);
 }
 function log(o){
@@ -148,7 +151,7 @@ function go2(){ //朔望日与寿星万年历比对(很耗时)
         }
 
 		var [year] = p.Jtime(A[0]);
-		var B = p.GetSMsinceWinterSolstice(year+1, true);
+		var [MC, B] = p.GetZQandSMandLunarMonthCode(year+1);
 		for(var j=0; j<16; j++){
 			var [yy, mm, dd, hh, mt, ss] = p.Jtime(A[j]);
 			var [yy2, mm2, dd2, hh2, mt2, ss2] = p.Jtime(B[j]);
@@ -198,7 +201,7 @@ function go3(){ //619-01-21至2300-01-01所有朔月
 
 	for(var jd = 1947148; jd <= 2561118; jd += 1){
 		var [yy, mm, dd] = p.Jtime(jd);
-		var jdnm = p.GetSMsinceWinterSolstice(yy, true);
+		var [MC, jdnm] = p.GetZQandSMandLunarMonthCode(yy+1);
 		
 		for(var i in jdnm){
 			jdnm[i] = Math.floor(jdnm[i] + 0.5);
@@ -239,12 +242,11 @@ function go3(){ //619-01-21至2300-01-01所有朔月
 	log(tjd);
 	log(tjd2);
 }
-loadJS('../../js/jquery-3.6.0.min.js', function(){
-	loadJS('../../js/paipan.js', function(){ //逐日与寿星万年历比较农历日期
+loadJS('jquery-3.6.0.min.js', function(){
+	loadJS('paipan.js', function(){ //逐日与寿星万年历比较农历日期
 		var ym = SSQ.ym.slice(2);
-		
-		p.debug = true;
-		for(var Y=2000,M=1; Y <= 2010; M++){//break; //公历转农历支持-721年至2300年,公农历互转支持-104年至2300年
+
+		for(var Y=2000,M=1; Y <= 2000; M++){//break; //公历转农历支持-721年至2300年,公农历互转支持-104年至2300年
 			for(var i = 0; i < 31; i++) {
 				lun.lun[i] = new Object();
 			}
@@ -269,19 +271,24 @@ loadJS('../../js/jquery-3.6.0.min.js', function(){
 					r2 = true;
 				}
 				var flag = true;
-				if(ob.yi != y2){
+				if(ob.yi != y2){ //农历年份
 					flag = false;
 				}
-				if(ob.ym != m2){
+				if(ob.ym != m2){ //农历月份
 					flag = false;
 				}
-				if(d != d2){
+				if(d != d2){ //农历日期
 					flag = false;
 				}
-				if(r != r2){
+				if(r != r2){ //是否闰月
 					flag = false;
 				}
-				
+				if(ob.gz != a.Lyear3){ //农历干支纪年
+					flag = false;
+				}
+				if(ob.days != a.Ldn){ //农历,该月多少天
+					flag = false;
+				}
 				if(a.y > -104){ //这之后的才能逆转
 					var [y3, m3, d3] = p.Lunar2Solar(y, m, d, r);
 					if((y3 != a.y) || (m3 != a.m) || (d3 != a.d)){
@@ -289,17 +296,17 @@ loadJS('../../js/jquery-3.6.0.min.js', function(){
 						flag = false;
 					}
 				}
-				
-				//log("公历:"+a.y+"-"+a.m+"-"+a.d+":::::::::寿星:"+y2+"-"+m2+"-"+d2+":::::::::本尊:"+ob.yi+"-"+ob.ym+"-"+d+"-"+r+"::::"+flag);
-				
+
 				if(flag == false){
 
-					log("公历:"+a.y+"-"+a.m+"-"+a.d+":::::::::寿星:"+y2+"-"+m2+"-"+d2+":::::::::本尊:"+ob.yi+"-"+ob.ym+"-"+d+"-"+r+"::::"+flag);
+					log("公历:"+a.y+"-"+a.m+"-"+a.d+":::::::::寿星:"+y2+"-"+m2+"-"+d2+r2+a.Lyear3+":::::::::本尊:"+ob.yi+"-"+ob.ym+"-"+d+"-"+r+ob.gz+"::::"+flag);
 
 					break;
 				}
 				
-				for(var h = 0; h <= 24; h += 1){
+				continue;
+				
+				for(var h = 0; h <= 24; h += 1){ //逐时对比四柱
 					var ob = new Object();
 
 					var jd = JD.JD(a.y, a.m, a.d + h / 24);
