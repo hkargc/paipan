@@ -106,9 +106,8 @@ function chg(){
 	var days = (0 - w + 7); //离第一个周日还有多少天
 	jd = jd + days + 2 * 7; //第三个周日
 	var [y, m, d] = p.Jtime(jd);
-	txt += "父亲节:"+y+"年"+m+"月"+d+"日\n";
-	
-	txt += "\n\n\n\n";
+	txt += "父亲节:"+y+"年"+m+"月"+d+"日\n\n";
+
 	var jw = JW[id];
 	var yy = parseInt($("#yy").val());
 	var mm = parseInt($("#mm").val());
@@ -122,6 +121,27 @@ function chg(){
 		$('#text').val("不存在此公历日期");
 		return false;
 	}
+
+	var [above, rise, sett, utrise, utset] = p.risenset(now, jw[2]+jw[3]/60, jw[4]+jw[5]/60, 1);
+	if(rise * sett == 1){
+		var t1 = p.Jtime(utrise);
+		var t2 = p.Jtime(utset);
+		txt += "月亮升起:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\n";
+	}
+	var [above, rise, sett, utrise, utset] = p.risenset(now, jw[2]+jw[3]/60, jw[4]+jw[5]/60, 2);
+	if(rise * sett == 1){
+		var t1 = p.Jtime(utrise);
+		var t2 = p.Jtime(utset);
+		txt += "太阳升起:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\n";
+	}
+	var [above, rise, sett, utrise, utset] = p.risenset(now, jw[2]+jw[3]/60, jw[4]+jw[5]/60, 3);
+	if(rise * sett == 1){
+		var t1 = p.Jtime(utrise);
+		var t2 = p.Jtime(utset);
+		txt += "海上微光:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒";
+	}
+	
+	txt += "\n\n\n";
 	
 	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss, jw[2]+jw[3]/60, jw[4]+jw[5]/60); //此处演示真太阳时排盘
 

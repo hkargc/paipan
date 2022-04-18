@@ -1194,16 +1194,16 @@ class paipan{
         1947168.00 //619-01-21
     ];
     /**
-	 * 真太阳时模块,cn代表cosine
-	 */
-	private function cn($x) {
-		return cos($x * 1.74532925199433E-02);
-	}
-	/**
 	 * 真太阳时模块,sn代表sin
 	 */
 	private function sn($x) {
 		return sin($x * 1.74532925199433E-02);
+	}
+	/**
+	 * 真太阳时模块,cn代表cosine
+	 */
+	private function cn($x) {
+		return cos($x * 1.74532925199433E-02);
 	}
 	/**
 	 * 真太阳时模块,返回小数部分(负数特殊) returns fractional part of a number
@@ -1219,9 +1219,9 @@ class paipan{
 	 * 真太阳时模块,只取整数部份
 	 */
 	private function ipart($x) {
-	    if($x == 0){
-	        return 0;
-	    }
+		if ($x == 0) {
+			return 0;
+		}
 		return ($x / abs($x)) * floor(abs($x));
 	}
 	/**
@@ -1252,18 +1252,44 @@ class paipan{
 		return [$xe, $ye, $z1, $z2, $nz];
 	}
 	/**
-	 * 真太阳时模块,returns sine of the altitude of either the sun or the moon given the modified julian day number at midnight UT and the hour of the UT day
+	 * 真太阳时模块,returns sine of the altitude of either the sun or the moon given the modified julian day of the UT
+	 * @param float $jd
+	 * @param float $J 经度,东经为正西经为负
+	 * @param float $W
+	 * @param int $LX 1月亮 2太阳日升日落 3太阳海上微光
 	 */
-	private function sinalt($instant, $J, $W) {
-		$t = ($instant - 51544.5) / 36525; //sun: Returns RA and DEC of Sun to roughly 1 arcmin for few hundred years either side of J2000.0
-		$p2 = 2 * M_PI;
+	private function sinalt($jd, $J, $W, $LX) {
+		$instant = $jd - 2400001;
+		
+		$t = ($instant - 51544.5) / 36525; //减51544.5为相对2000年01月01日零点
+		if ($LX == 1) {
+			[$ra, $dec] = $this->moon($t);
+		} else {
+			[$ra, $dec] = $this->sun($t);
+		}
+
+		$mjd0 = $this->ipart($instant); //UT时间0点;returns the local sidereal time(计算观测地区的恒星时)开始
+		$ut = ($instant - $mjd0) * 24;
+		$t2 = ($mjd0 - 51544.5) / 36525;
+		$gmst = 6.697374558 + 1.0027379093 * $ut;
+		$gmst = $gmst + (8640184.812866 + (0.093104 - 0.0000062 * $t2) * $t2) * $t2 / 3600;
+		$lmst = 24 * $this->fpart(($gmst + $J / 15) / 24); //结束
+
+		$tau = 15 * ($lmst - $ra); //hour angle of object
+		return $this->sn($W) * $this->sn($dec) + $this->cn($W) * $this->cn($dec) * $this->cn($tau);
+	}
+	/**
+	 * 真太阳时模块,关于太阳的,Returns RA and DEC of Sun to roughly 1 arcmin for few hundred years either side of J2000.0
+	 */
+	private function sun($t) {
+	    $p2 = 2 * M_PI;
 		$COSEPS = 0.91748;
 		$SINEPS = 0.39778;
 		$m = $p2 * $this->fpart(0.993133 + 99.997361 * $t); //Mean anomaly
 		$dL = 6893 * sin($m) + 72 * sin(2 * $m); //Eq centre
 		$L = $p2 * $this->fpart(0.7859453 + $m / $p2 + (6191.2 * $t + $dL) / 1296000);
-		
-		$sl = sin($L); //convert to RA and DEC - ecliptic latitude of Sun taken as zero
+		//convert to RA and DEC - ecliptic latitude of Sun taken as zero
+		$sl = sin($L);
 		$x = cos($L);
 		$y = $COSEPS * $sl;
 		$Z = $SINEPS * $sl;
@@ -1273,29 +1299,72 @@ class paipan{
 		if ($ra < 0) {
 			$ra = $ra + 24;
 		}
-		
-		$mjd = $this->ipart($instant); //lmst: returns the local siderial time for the instant and longitude specified
-		$ut = ($instant - $mjd) * 24;
-		$t2 = ($mjd - 51544.5) / 36525;
-		$gmst = 6.697374558 + 1.0027379093 * $ut;
-		$gmst = $gmst + (8640184.812866 + (0.093104 - 0.0000062 * $t2) * $t2) * $t2 / 3600;
-		$lmst = 24 * $this->fpart(($gmst - $J / 15) / 24); //取得观测地区的恒星时
-		$tau = 15 * ($lmst - $ra); //hour angle of object
-		$sinho = $this->sn(-50 / 60); //sunrise - classic value for refraction
-		return $this->sn($W) * $this->sn($dec) + $this->cn($W) * $this->cn($dec) * $this->cn($tau) - $sinho;
+		return [$ra, $dec];
 	}
 	/**
-	 * 真太阳时模块,改编自 https://bieyu.com/ (月亮與太陽出没時間) 原理:用天文方法计算出太阳升起和落下时刻,中间则为当地正午(自创),与12点比较得到时差;与寿星万年历比较,两者相差在20秒内
-	 * @param float jd
-	 * @param float J 经度
-	 * @param float W 纬度,太阳并不是严格从正东方升起,所以纬度也有影响,只是相对影响较小
+	 * 真太阳时模块,关于月球的,Returns RA and DEC of Moon to 5 arc min (ra) and 1 arc min (dec) for a few centuries either side of J2000.0
+	 * Predicts rise and set times to within minutes for about 500 years in past - TDT and UT time diference may become significant for long times
 	 */
-	private function zty($jd, $J, $W=null) {
+	private function moon($t) {
+	    $p2 = 2 * M_PI;
+		$ARC = 206264.8062;
+		$COSEPS = 0.91748;
+		$SINEPS = 0.39778;
+		$L0 = $this->fpart(0.606433 + 1336.855225 * $t); //mean long Moon in revs
+		$L = $p2 * $this->fpart(0.374897 + 1325.55241 * $t); //mean anomaly of Moon
+		$LS = $p2 * $this->fpart(0.993133 + 99.997361 * $t); //mean anomaly of Sun
+		$d = $p2 * $this->fpart(0.827361 + 1236.853086 * $t); //diff longitude sun and moon
+		$F = $p2 * $this->fpart(0.259086 + 1342.227825 * $t); //mean arg latitude
+		//longitude correction terms
+		$dL = 22640 * sin($L) - 4586 * sin($L - 2 * $d);
+		$dL = $dL + 2370 * sin(2 * $d) + 769 * sin(2 * $L);
+		$dL = $dL - 668 * sin($LS) - 412 * sin(2 * $F);
+		$dL = $dL - 212 * sin(2 * $L - 2 * $d) - 206 * sin($L + $LS - 2 * $d);
+		$dL = $dL + 192 * sin($L + 2 * $d) - 165 * sin($LS - 2 * $d);
+		$dL = $dL - 125 * sin($d) - 110 * sin($L + $LS);
+		$dL = $dL + 148 * sin($L - $LS) - 55 * sin(2 * $F - 2 * $d);
+		//latitude arguments
+		$S = $F + ($dL + 412 * sin(2 * $F) + 541 * sin($LS)) / $ARC;
+		$h = $F - 2 * $d;
+		//latitude correction terms
+		$N = -526 * sin($h) + 44 * sin($L + $h) - 31 * sin($h - $L) - 23 * sin($LS + $h);
+		$N = $N + 11 * sin($h - $LS) - 25 * sin($F - 2 * $L) + 21 * sin($F - $L);
+		$lmoon = $p2 * $this->fpart($L0 + $dL / 1296000); //Lat in rads
+		$bmoon = (18520 * sin($S) + $N) / $ARC; //long in rads
+		//convert to equatorial coords using a fixed ecliptic
+		$CB = cos($bmoon);
+		$x = $CB * cos($lmoon);
+		$V = $CB * sin($lmoon);
+		$C = sin($bmoon);
+		$y = $COSEPS * $V - $SINEPS * $C;
+		$Z = $SINEPS * $V + $COSEPS * $C;
+		$rho = sqrt(1 - $Z * $Z);
+		$dec = (360 / $p2) * atan($Z / $rho); //算出月球的视赤纬(apparent declination)
+		$ra = (48 / $p2) * atan($y / ($x + $rho)); //算出月球的视赤经(apparent right ascension)
+		if ($ra < 0) {
+			$ra = $ra + 24;
+		}
+		return [$ra, $dec];
+	}
+	/**
+	 * 真太阳时模块,rise and set(升降计算)
+	 * @param float $jd
+	 * @param float $J 经度,东经为正西经为负
+	 * @param float $W
+	 * @param int $LX 类型:1月亮;2太阳日升日落;3太阳海上微光
+	 * @return array 时刻转成了jd值
+	 */
+	private function risenset($jd, $J, $W, $LX) {
 		$jd = floatval($jd);
-		$J = (is_null($J) === true) ? -1 * $this->J : -1 * floatval($J); //此模块西经为正 routines use east longitude negative convention
-		$W = (is_null($W) === true) ? +1 * $this->W : +1 * floatval($W); //北纬为正,南纬为负
+		$J = +1 * floatval($J); //统一东经为正
+		$W = +1 * floatval($W); //北纬为正,南纬为负
 		
-		$thedate = round($jd) - 2400001 - $this->J / 360; //儒略日中午12点,減去2400001再減去8小時時差,再减51544.5为2000年01月01日零点
+		$noon = round($jd) - $this->J / 360; //儒略日,中午12点,減去8小時時差
+
+		$sinho = []; //太阳盘面几何中心与理想地平面之间的夹角
+		$sinho[1] = $this->sn(8 / 60); //moonrise - average diameter used(月亮升降)
+		$sinho[2] = $this->sn(-50 / 60); //sunrise - classic value for refraction(太阳升降)
+		$sinho[3] = $this->sn(-12); //nautical twilight(海上微光)
 		
 		$rise = 0; //是否有升起动作
 		$utrise = 0; //升起的时间
@@ -1303,27 +1372,32 @@ class paipan{
 		$sett = 0; //是否有落下动作
 		$utset = 0; //落下的时间
 
-		$hour = 1; //起始时间
+		$hour = 1;
 		$zero2 = 0; //两小时内是否进行了升起和落下两个动作(极地附近有这种情况,如1999年12月25日,经度0,纬度67.43,当天的太阳只有8分钟-_-)
-		
-		$ym = $this->sinalt($thedate + ($hour - 1) / 24, $J, $W); //See STEP 1 and 2 of Web page description.
-		$above = ($ym > 0) ? 1 : 0; //used later to classify non-risings 是否在地平线上方
-		
-		do { //STEP 1 and STEP 3 of Web page description
-			$y0 = $this->sinalt($thedate + ($hour + 0) / 24, $J, $W);
-			$yp = $this->sinalt($thedate + ($hour + 1) / 24, $J, $W);
-			
-			[$xe, $ye, $z1, $z2, $nz] = $this->quad($ym, $y0, $yp); //STEP 4 of web page description 大概是三点确定一条抛物线?
+
+		$ym = $this->sinalt($noon + ($hour - 1)/24, $J, $W, $LX) - $sinho[$LX]; //See STEP 1 and 2 of Web page description.
+		if ($ym > 0) { //used later to classify non-risings 是否在地平线上方
+			$above = 1;
+		} else {
+			$above = 0;
+		}
+
+		do {
+			//STEP 1 and STEP 3 of Web page description
+			$y0 = $this->sinalt($noon + ($hour + 0)/24, $J, $W, $LX) - $sinho[$LX];
+			$yp = $this->sinalt($noon + ($hour + 1)/24, $J, $W, $LX) - $sinho[$LX];
+			//STEP 4 of web page description
+			[$xe, $ye, $z1, $z2, $nz] = $this->quad($ym, $y0, $yp);
 			switch ($nz) { //cases depend on values of discriminant - inner part of STEP 4
 				case 0: //nothing  - go to next time slot
 				break; 
 				case 1: //simple rise / set event
 					if ($ym < 0) { //must be a rising event
-						$rise = 1;
 						$utrise = $hour + $z1;
+						$rise = 1;
 					} else { //must be setting
-						$sett = 1;
 						$utset = $hour + $z1;
+						$sett = 1;
 					}
 				break;
 				case 2: //rises and sets within interval
@@ -1341,15 +1415,30 @@ class paipan{
 			}
 			$ym = $yp; //reuse the ordinate in the next interval
 			$hour = $hour + 2;
-		} while (($hour < 25) && ($rise * $sett == 0)); //STEP 5 of Web page description - have we finished for this object?
+		} while (!(($hour == 25) || ($rise * $sett == 1))); //STEP 5 of Web page description - have we finished for this object?
+
+		return [$above, $rise, $sett, round($jd) - 0.5 + $utrise/24, round($jd) - 0.5 + $utset/24];
+	}
+	/**
+	 * 真太阳时模块,改编自 https://bieyu.com/ (月亮與太陽出没時間) 原理:用天文方法计算出太阳升起和落下时刻,中间则为当地正午(自创),与12点比较得到时差;与寿星万年历比较,两者相差在20秒内
+	 * @param float jd
+	 * @param float J 经度,东经为正西经为负,注意西经60度38分转换方式是: -60 + -1 * 38/60
+	 * @param float W 纬度,北纬为正南纬为负,太阳并不是严格从正东方升起,所以纬度也有影响,只是相对影响较小
+	 */
+	private function zty($jd, $J, $W=null) {
+		$jd = floatval($jd);
+		$J = (is_null($J) === true) ? $this->J : floatval($J);
+		$W = (is_null($J) === true) ? $this->W : floatval($W);
+		
+		[$above, $rise, $sett, $utrise, $utset] = $this->risenset($jd, $J, $W, 2);
 		if($rise * $sett == 0){ //极昼极夜存在此种情况(above==1极昼,above==0极夜)
 			return $jd;
 		}
 		while($utset < $utrise){ //太阳先升起再落下,时区与经度不匹配的情况下会出现此种情况
-			$utset += 24;
+			$utset += 1;
 		}
 		$noon = $utrise + ($utset - $utrise) / 2; //太阳升起和落下时刻,中点则为当地正午
-		return $jd - ($noon - 12) / 24; //与12点比较得到时差,单位由小时转为天
+		return $jd - ($noon - round($jd)); //与12点比较得到时差
 	}
     /**
      * 將公历年月日時轉换爲儒略日历时间
@@ -1705,21 +1794,25 @@ class paipan{
         return $jdjq;
     }
     /**
-     * 對於指定日期時刻所屬的朔望月,求出其均值新月點的月序數
+     * 對於指定日期時刻所屬的朔望月,求出其均值新月點的月序數或时刻
      * @param float $jd
-     * @return int
+     * @param bool $return_k 是否仅返回月序数
+     * @return int/float
      */
-    private function MeanNewMoon($jd) {
+    private function MeanNewMoon($jd, $return_k=false) {
         $jd = floatval($jd);
         
         //k為從2000年1月6日14時20分36秒起至指定年月日之陰曆月數,以synodic month為單位
-        $k = floor(($jd - 2451550.09765) / $this->synmonth); //2451550.09765為2000年1月6日14時20分36秒之JD值。
-        //$jdt = 2451550.09765 + $k * $this->synmonth;
+        $k = floor(($jd - 2451550.09765) / $this->synmonth); //2451550.09765為2000年1月6日14時20分36秒之JD值,此為2000年後的第一個均值新月
+        if($return_k){
+            return $k;
+        }
+        $jdt = 2451550.09765 + $k * $this->synmonth;
         //Time in Julian centuries from 2000 January 0.5.
-        //$t = ($jdt - 2451545) / 36525; //以100年為單位,以2000年1月1日12時為0點
-        //$thejd = $jdt + 0.0001337 * $t * $t - 0.00000015 * $t * $t * $t + 0.00000000073 * $t * $t * $t * $t;
-        //2451550.09765為2000年1月6日14時20分36秒,此為2000年後的第一個均值新月
-        return $k;
+        $t = ($jdt - 2451545) / 36525; //以100年為單位,以2000年1月1日12時為0點
+        $pt = $jdt + 0.0001337 * $t * $t - 0.00000015 * $t * $t * $t + 0.00000000073 * $t * $t * $t * $t;
+
+        return $pt;
     }
     /**
      * 求出實際新月點.以2000年初的第一個均值新月點為0點求出的均值新月點和其朔望月之序數k代入此副程式來求算實際新月點
@@ -1753,7 +1846,7 @@ class paipan{
             }
         }
         
-        $k = $this->MeanNewMoon($jd); //+ 0,0.25,0.5,0.75分別對應新月,上弦月,滿月,下弦月
+        $k = $this->MeanNewMoon($jd, true); //+ 0,0.25,0.5,0.75分別對應新月,上弦月,滿月,下弦月
         
         $jdt = 2451550.09765 + $k * $this->synmonth;
         $t = ($jdt - 2451545) / 36525; //2451545為2000年1月1日正午12時的JD
@@ -1821,8 +1914,8 @@ class paipan{
         
         if($calendar && is_array($this->smXFu[$yy])){ //下面进行查表修正
             $jd = $this->Jdays($yy, 1, 1, 0, 0, 0); //算<=当年的那个朔望日
-            $j = $this->MeanNewMoon($jd);
-            $n = floor($k) - $j; //当年第几个朔望日,用作校准的下标
+            $k2 = $this->MeanNewMoon($jd, true);
+            $n = $k - $k2; //当年第几个朔望日,用作校准的下标
             if($this->smXFu[$yy][$n]){
                 $jdt += $this->smXFu[$yy][$n];
                 $jdt = floor($jdt + 0.5); //修正后精度为日
