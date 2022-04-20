@@ -1347,12 +1347,12 @@ class paipan{
 		return [$ra, $dec];
 	}
 	/**
-	 * 真太阳时模块,rise and set(升降计算)
+	 * 真太阳时模块,rise and set(升降计算) [升起时刻(真太阳时),落下时刻(真太阳时),真平太阳时差(仅类型2),升起时刻(标准时间,仅类型2),落下时刻(标准时间,仅类型2)]
 	 * @param float $jd
 	 * @param float $J 经度,东经为正西经为负
 	 * @param float $W
 	 * @param int $LX 类型:1月亮;2太阳日升日落;3太阳海上微光
-	 * @return array 时刻转成了jd值
+	 * @return array
 	 */
 	private function risenset($jd, $J, $W, $LX) {
 		$jd = floatval($jd);
@@ -1367,16 +1367,16 @@ class paipan{
 		$sinho[3] = $this->sn(-12); //nautical twilight(海上微光)
 		
 		$rise = 0; //是否有升起动作
-		$utrise = 0; //升起的时间
+		$utrise = false; //升起的时间
 		
 		$sett = 0; //是否有落下动作
-		$utset = 0; //落下的时间
+		$utset = false; //落下的时间
 
 		$hour = 1;
 		$zero2 = 0; //两小时内是否进行了升起和落下两个动作(极地附近有这种情况,如1999年12月25日,经度0,纬度67.43,当天的太阳只有8分钟-_-)
 
 		$ym = $this->sinalt($noon + ($hour - 1)/24, $J, $W, $LX) - $sinho[$LX]; //See STEP 1 and 2 of Web page description.
-		if ($ym > 0) { //used later to classify non-risings 是否在地平线上方
+		if ($ym > 0) { //used later to classify non-risings 是否在地平线上方,用于判断极昼极夜
 			$above = 1;
 		} else {
 			$above = 0;
@@ -1417,7 +1417,27 @@ class paipan{
 			$hour = $hour + 2;
 		} while (!(($hour == 25) || ($rise * $sett == 1))); //STEP 5 of Web page description - have we finished for this object?
 
-		return [$above, $rise, $sett, round($jd) - 0.5 + $utrise/24, round($jd) - 0.5 + $utset/24];
+		if($utset !== false){ //注意这里转成了真太阳时
+		    $utset = round($jd) - 0.5 + $utset/24 - ($this->J - $J) * 4 / 60 / 24;
+		}
+		if($utrise !== false){
+		    $utrise = round($jd) - 0.5 + $utrise/24 - ($this->J - $J) * 4 / 60 / 24;
+		}
+		
+		$dt = 0; //地方平太阳时 减 真太阳时 的差值,即"真平太阳时差换算表",单位为天
+		$tset = ($LX == 2) ? $utset : 0; //用于返回标准时间,关于月亮的必须先通过太阳升降获取到dt再转标准时间
+		$trise = ($LX == 2) ? $utrise : 0;
+		if(($LX == 2) && ($rise * $sett == 1)){ //太阳相关,非极昼极夜且有升有落
+		    while($tset < $trise){ //太阳先落下再升起,时区与经度不匹配的情况下会出现此种情况,加一天修正
+		        $tset += 1;
+		    }
+		    $dt = round($jd) - ($trise + ($tset - $trise) / 2); //单位为天.比较两者的中午12点(上午和下午是对称的)
+		    
+		    $tset = $tset - $dt + ($this->J - $J) * 4 / 60 / 24; //真太阳时转标准时间
+		    $trise = $trise - $dt + ($this->J - $J) * 4 / 60 / 24;
+		}
+		
+		return [$utrise, $utset, $dt, $trise, $tset];
 	}
 	/**
 	 * 真太阳时模块,改编自 https://bieyu.com/ (月亮與太陽出没時間) 原理:用天文方法计算出太阳升起和落下时刻,中间则为当地正午(自创),与12点比较得到时差;与寿星万年历比较,两者相差在20秒内
@@ -1430,15 +1450,9 @@ class paipan{
 		$J = (is_null($J) === true) ? $this->J : floatval($J);
 		$W = (is_null($J) === true) ? $this->W : floatval($W);
 		
-		[$above, $rise, $sett, $utrise, $utset] = $this->risenset($jd, $J, $W, 2);
-		if($rise * $sett == 0){ //极昼极夜存在此种情况(above==1极昼,above==0极夜)
-			return $jd;
-		}
-		while($utset < $utrise){ //太阳先升起再落下,时区与经度不匹配的情况下会出现此种情况
-			$utset += 1;
-		}
-		$noon = $utrise + ($utset - $utrise) / 2; //太阳升起和落下时刻,中点则为当地正午
-		return $jd - ($noon - round($jd)); //与12点比较得到时差
+		[$utrise, $utset, $dt, $trise, $tset] = $this->risenset($jd, $J, $W, 2);
+		
+		return $jd - ($this->J - $J) * 4 / 60 / 24 + $dt; //转地方平太阳时+修正
 	}
     /**
      * 將公历年月日時轉换爲儒略日历时间
@@ -2609,7 +2623,7 @@ class paipan{
         $rt = []; //要返回的数组 return
         
         if(is_null($J) === false){ //需要转地方真太阳时
-            $rt['pty'] = $spcjd + (floatval($J) - $this->J) * 4 * 60 / 86400; //计算地方平太阳时,每经度时差4分钟
+            $rt['pty'] = $spcjd - ($this->J - floatval($J)) * 4 / 60 / 24;
             $rt['pty'] = $this->Jtime($rt['pty']); //地方平太阳时
             
             $spcjd = $this->zty($spcjd, $J, $W); //采用真太阳时排盘,这里有点疑问: 对应的廿四节气的计算是否也要转为真太阳时呢?

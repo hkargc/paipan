@@ -1325,12 +1325,12 @@ function paipan() {
 		return [ra, dec];
 	};
 	/**
-	 * 真太阳时模块,rise and set(升降计算)
+	 * 真太阳时模块,rise and set(升降计算) [升起时刻(真太阳时),落下时刻(真太阳时),真平太阳时差(仅类型2),升起时刻(标准时间,仅类型2),落下时刻(标准时间,仅类型2)]
 	 * @param float jd
 	 * @param float J 经度,东经为正西经为负
 	 * @param float W
 	 * @param int LX 类型:1月亮;2太阳日升日落;3太阳海上微光
-	 * @return array 时刻转成了jd值
+	 * @return array
 	 */
 	this.risenset = function(jd, J, W, LX) {
 		var jd = this.floatval(jd);
@@ -1345,16 +1345,16 @@ function paipan() {
 		sinho[3] = this.sn(-12); //nautical twilight(海上微光)
 		
 		var rise = 0; //是否有升起动作
-		var utrise = 0; //升起的时间
+		var utrise = false; //升起的时间
 		
 		var sett = 0; //是否有落下动作
-		var utset = 0; //落下的时间
+		var utset = false; //落下的时间
 
 		var hour = 1;
 		var zero2 = 0; //两小时内是否进行了升起和落下两个动作(极地附近有这种情况,如1999年12月25日,经度0,纬度67.43,当天的太阳只有8分钟-_-)
 
 		var ym = this.sinalt(noon + (hour - 1)/24, J, W, LX) - sinho[LX]; //See STEP 1 and 2 of Web page description.
-		if (ym > 0) { //used later to classify non-risings 是否在地平线上方
+		if (ym > 0) { //used later to classify non-risings 是否在地平线上方,用于判断极昼极夜
 			var above = 1;
 		} else {
 			var above = 0;
@@ -1394,8 +1394,28 @@ function paipan() {
 			ym = yp; //reuse the ordinate in the next interval
 			hour = hour + 2;
 		} while (!((hour == 25) || (rise * sett == 1))); //STEP 5 of Web page description - have we finished for this object?
+		
+		if(utset !== false){ //注意这里转成了真太阳时
+			utset = Math.round(jd) - 0.5 + utset/24 - (this.J - J) * 4 / 60 / 24;
+		}
+		if(utrise !== false){
+			utrise = Math.round(jd) - 0.5 + utrise/24 - (this.J - J) * 4 / 60 / 24;
+		}
 
-		return [above, rise, sett, Math.round(jd) - 0.5 + utrise/24, Math.round(jd) - 0.5 + utset/24];
+		var dt = 0; //地方平太阳时 减 真太阳时 的差值,即"真平太阳时差换算表",单位为天
+		var tset = (LX == 2) ? utset : 0; //用于返回标准时间,关于月亮的必须先通过太阳升降获取到dt再转标准时间
+		var trise = (LX == 2) ? utrise : 0;
+		if((LX == 2) && (rise * sett == 1)){ //太阳相关,非极昼极夜且有升有落
+			while(tset < trise){ //太阳先落下再升起,时区与经度不匹配的情况下会出现此种情况,加一天修正
+				tset += 1;
+			}
+			dt = Math.round(jd) - (trise + (tset - trise) / 2); //单位为天.比较两者的中午12点(上午和下午是对称的)
+			
+			tset = tset - dt + (this.J - J) * 4 / 60 / 24; //真太阳时转标准时间
+			trise = trise - dt + (this.J - J) * 4 / 60 / 24;
+		}
+
+		return [utrise, utset, dt, trise, tset];
 	};
 	/**
 	 * 真太阳时模块,改编自 https://bieyu.com/ (月亮與太陽出没時間) 原理:用天文方法计算出太阳升起和落下时刻,中间则为当地正午(自创),与12点比较得到时差;与寿星万年历比较,两者相差在20秒内
@@ -1408,15 +1428,9 @@ function paipan() {
 		var J = (J === undefined) ? this.J : this.floatval(J);
 		var W = (W === undefined) ? this.W : this.floatval(W);
 		
-		var [above, rise, sett, utrise, utset] = this.risenset(jd, J, W, 2);
-		if(rise * sett == 0){ //极昼极夜存在此种情况(above==1极昼,above==0极夜)
-			return jd;
-		}
-		while(utset < utrise){ //太阳先升起再落下,时区与经度不匹配的情况下会出现此种情况
-			utset += 1;
-		}
-		var noon = utrise + (utset - utrise) / 2; //太阳升起和落下时刻,中点则为当地正午
-		return jd - (noon - Math.round(jd)); //与12点比较得到时差
+		var [utrise, utset, dt, trise, tset] = this.risenset(jd, J, W, 2);
+		
+		return jd - (this.J - J) * 4 / 60 / 24 + dt; //转地方平太阳时+修正
 	};
     /**
      * 將公历時间轉换爲儒略日
@@ -2592,7 +2606,7 @@ function paipan() {
 		var rt = []; //要返回的数组 return
 		
 		if(J !== undefined){ //有传参,需要转地方真太阳时
-			rt['pty'] = spcjd + (this.floatval(J) - this.J) * 4 * 60 / 86400; //计算地方平太阳时,每经度时差4分钟
+			rt['pty'] = spcjd - (this.J - this.floatval(J)) * 4 / 60 / 24; //计算地方平太阳时,每经度时差4分钟
 			rt['pty'] = this.Jtime(rt['pty']); //地方平太阳时
 
 			spcjd = this.zty(spcjd, J, W); //采用真太阳时排盘,这里有点疑问: 对应的廿四节气的计算是否也要转为真太阳时呢?

@@ -121,34 +121,17 @@ function chg(){
 		$('#text').val("不存在此公历日期");
 		return false;
 	}
-
-	var [above, rise, sett, utrise, utset] = p.risenset(now, jw[2]+jw[3]/60, jw[4]+jw[5]/60, 1);
-	if(rise * sett == 1){
-		var t1 = p.Jtime(utrise);
-		var t2 = p.Jtime(utset);
-		txt += "月亮升起:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\n";
-	}
-	var [above, rise, sett, utrise, utset] = p.risenset(now, jw[2]+jw[3]/60, jw[4]+jw[5]/60, 2);
-	if(rise * sett == 1){
-		var t1 = p.Jtime(utrise);
-		var t2 = p.Jtime(utset);
-		txt += "太阳升起:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\n";
-	}
-	var [above, rise, sett, utrise, utset] = p.risenset(now, jw[2]+jw[3]/60, jw[4]+jw[5]/60, 3);
-	if(rise * sett == 1){
-		var t1 = p.Jtime(utrise);
-		var t2 = p.Jtime(utset);
-		txt += "海上微光:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒";
-	}
+	txt += "\n\n";
 	
-	txt += "\n\n\n";
-	
-	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss, jw[2]+jw[3]/60, jw[4]+jw[5]/60); //此处演示真太阳时排盘
+	var J = jw[2]+jw[3]/60;
+	var W = jw[4]+jw[5]/60;
 
-	txt += "公历北京时间为:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n\n";
-	txt += "本地平太阳时为:"+fm['pty'][0]+"年"+fm['pty'][1]+"月"+fm['pty'][2]+"日"+fm['pty'][3]+"时"+fm['pty'][4]+"分"+fm['pty'][5]+"秒"+"\n\n";
+	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss, J, W); //此处演示真太阳时排盘
+
+	txt += "公历北京时间为:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n";
+	txt += "本地平太阳时为:"+fm['pty'][0]+"年"+fm['pty'][1]+"月"+fm['pty'][2]+"日"+fm['pty'][3]+"时"+fm['pty'][4]+"分"+fm['pty'][5]+"秒"+"\n";
 	txt += "本地真太阳时为:"+fm['zty'][0]+"年"+fm['zty'][1]+"月"+fm['zty'][2]+"日"+fm['zty'][3]+"时"+fm['zty'][4]+"分"+fm['zty'][5]+"秒"+"\n\n";
-	txt += "真太阳时八字为:"+p.ctg[fm.tg[0]]+p.cdz[fm.dz[0]]+p.ctg[fm.tg[1]]+p.cdz[fm.dz[1]]+p.ctg[fm.tg[2]]+p.cdz[fm.dz[2]]+p.ctg[fm.tg[3]]+p.cdz[fm.dz[3]]+"\n\n";
+	txt += "真太阳时八字为:"+p.ctg[fm.tg[0]]+p.cdz[fm.dz[0]]+p.ctg[fm.tg[1]]+p.cdz[fm.dz[1]]+p.ctg[fm.tg[2]]+p.cdz[fm.dz[2]]+p.ctg[fm.tg[3]]+p.cdz[fm.dz[3]]+"\n";
 	
 	txt += "该八字的刑冲合害关系:\n";
 	var gxs = GetGX(fm['tg'], fm['dz']);
@@ -167,6 +150,22 @@ function chg(){
 	
 	var jd = p.Jdays(yy, mm, dd, hh, mt, ss);
 	txt += "对应的儒略日:"+jd+"\n\n";
+	
+	txt += "[北京时间]:\n";
+	var [utrise, utset, dt, trise, tset] = p.risenset(jd, J, W, 2);
+	var t1 = (trise === false) ? ['-','-','-','-','-','-'] : p.Jtime(trise);
+	var t2 = (tset === false) ? ['-','-','-','-','-','-'] : p.Jtime(tset);
+	txt += "太阳升起:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\n";
+	
+	var [utrise, utset] = p.risenset(jd, J, W, 3); //注意这里的dt来源
+	var t1 = (utrise === false) ? ['-','-','-','-','-','-'] : p.Jtime(utrise - dt + (p.J - J) * 4 / 60 / 24);
+	var t2 = (utset === false) ? ['-','-','-','-','-','-'] : p.Jtime(utset - dt + (p.J - J) * 4 / 60 / 24);
+	txt += "海上微光:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\n";
+	
+	var [utrise, utset] = p.risenset(jd, J, W, 1);
+	var t1 = (utrise === false) ? ['-','-','-','-','-','-'] : p.Jtime(utrise - dt + (p.J - J) * 4 / 60 / 24);
+	var t2 = (utset === false) ? ['-','-','-','-','-','-'] : p.Jtime(utset - dt + (p.J - J) * 4 / 60 / 24);
+	txt += "月亮升起:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\n\n";
 	
 	var [tg, dz] = p.GetGZ(yy, mm , dd, hh, mt, ss);
 	txt += "对应的干支历:"+p.ctg[tg[0]]+p.cdz[dz[0]]+p.ctg[tg[1]]+p.cdz[dz[1]]+p.ctg[tg[2]]+p.cdz[dz[2]]+p.ctg[tg[3]]+p.cdz[dz[3]]+"\n";
