@@ -39,6 +39,10 @@ function paipan() {
      * 均值朔望月長 synodic month (new Moon to new Moon)
      */
     this.synmonth = 29.530588853;
+	/**
+     * 回归年长 Tropical year
+     */
+    this.ty = 365.24244475;
     /**
      * 星期 week day
      */
@@ -77,7 +81,7 @@ function paipan() {
     /**
      * 大写日期
      */
-    this.dxd = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '廿十', '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+    this.dxd = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十', '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
     /**
      * 大写数字
      */
@@ -1502,12 +1506,12 @@ function paipan() {
         var mt = Math.floor(sd / 60);
         var ss = sd % 60;
         var hh = Math.floor(mt / 60);
-        var mmt = mt % 60;
+        var mt = mt % 60;
         var yy = Math.floor(y);
         var mm = Math.floor(m);
         var dd = Math.floor(d);
 
-        return [yy, mm, dd, hh, mmt, ss];
+        return [yy, mm, dd, hh, mt, ss];
     };
     /**
      * 驗證公历日期是否有效
@@ -2690,7 +2694,7 @@ function paipan() {
             } //ord即為指定時刻所在的節氣月首JD值
         }
 		
-		var ta = this.pdy ? 365.24244475 : 360; //一個廻歸年的天數
+		var ta = this.pdy ? this.ty : 360; //一個廻歸年的天數
 		
         var xf = spcjd - ob.jr[21 + 2*ord]; //xf代表節氣月的前段長,單位為日,以指定時刻為分界點
         var yf = ob.jr[21 + 2*ord + 2] - spcjd; //yf代表節氣月的後段長
@@ -2709,12 +2713,17 @@ function paipan() {
 			}
             var forward = 1;
         }
-        var qyt = spcjd + zf; //起運時刻為指定時刻加上推算出的10年內比例值zf
+		var y = this.intval(zf / ta);
+		var m = this.intval(zf % ta / (ta / 12));
+		var d = this.intval(zf % ta % (ta / 12));
+		
+        rt['qyy_desc'] = "出生后" + y + "年" + m + "个月" + d + "天起运"; //与十三行八字一致
+		
+        var qyt = spcjd + (y + m/12 + d/this.ty)*this.ty; //转按回归年算
         var jt = this.Jtime(qyt); //將起運時刻的JD值轉換為年月日時分秒
         var qyy = jt[0]; //起運年(公历)
 
         rt['qyy'] = qyy; //起運年
-        rt['qyy_desc'] = "出生后" + this.intval(zf / ta) + "年" + this.intval(zf % ta / (ta / 12)) + "个月" + this.intval(zf % ta % (ta / 12)) + "天起运"; //一年按ta天算,一个月按ta/12天算
 
         //求算起運年(指節氣年,农历)
         var qjr = this.GetAdjustedJQ(qyy - 1, false); //立春在上一年的以春分开始的数组中
@@ -2726,8 +2735,8 @@ function paipan() {
 
         //求算起運年及其後第五年的年干支及起運歲
         var jtd = ((jqyy + 4712 + 24) % 10 + 10) % 10;
-        jtd = this.ctg[((jqyy + 4712 + 24) % 10 + 10) % 10] + " " + this.ctg[((jqyy + 4712 + 24 + 5) % 10 + 10) % 10];
-        rt['qyy_desc2'] = "每逢 " + jtd + " 年" + jt[1] + "月" + jt[2] + "日交大运"; //顯示每十年為一階段之起運時刻,分兩個五年以年天干和陽曆日期表示
+        jtd = this.ctg[((jqyy + 4712 + 24) % 10 + 10) % 10] + "、" + this.ctg[((jqyy + 4712 + 24 + 5) % 10 + 10) % 10];
+        rt['qyy_desc2'] = "每逢 " + jtd + " 年" + jt[1] + "月" + jt[2] + "日" + jt[3] + "时交脱大运"; //顯示每十年為一階段之起運時刻,分兩個五年以年天干和陽曆日期表示
         var qage = jqyy - ob.ty; //起運年減去出生年再加一即為起運之歲數,從懷胎算起,出生即算一歲
 
         rt['dy'] = []; //大运

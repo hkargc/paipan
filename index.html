@@ -106,7 +106,7 @@ function chg(){
 	var days = (0 - w + 7); //离第一个周日还有多少天
 	jd = jd + days + 2 * 7; //第三个周日
 	var [y, m, d] = p.Jtime(jd);
-	txt += "父亲节:"+y+"年"+m+"月"+d+"日\n\n";
+	txt += "父亲节:"+y+"年"+m+"月"+d+"日\n";
 
 	var jw = JW[id];
 	var yy = parseInt($("#yy").val());
@@ -121,7 +121,7 @@ function chg(){
 		$('#text').val("不存在此公历日期");
 		return false;
 	}
-	txt += "\n\n";
+	txt += "\n";
 	
 	var J = jw[2]+jw[3]/60;
 	var W = jw[4]+jw[5]/60;
@@ -131,7 +131,10 @@ function chg(){
 	txt += "公历北京时间为:"+yy+"年"+mm+"月"+dd+"日"+hh+"时"+mt+"分"+ss+"秒"+"\n";
 	txt += "本地平太阳时为:"+fm['pty'][0]+"年"+fm['pty'][1]+"月"+fm['pty'][2]+"日"+fm['pty'][3]+"时"+fm['pty'][4]+"分"+fm['pty'][5]+"秒"+"\n";
 	txt += "本地真太阳时为:"+fm['zty'][0]+"年"+fm['zty'][1]+"月"+fm['zty'][2]+"日"+fm['zty'][3]+"时"+fm['zty'][4]+"分"+fm['zty'][5]+"秒"+"\n\n";
-	txt += "真太阳时八字为:"+p.ctg[fm.tg[0]]+p.cdz[fm.dz[0]]+p.ctg[fm.tg[1]]+p.cdz[fm.dz[1]]+p.ctg[fm.tg[2]]+p.cdz[fm.dz[2]]+p.ctg[fm.tg[3]]+p.cdz[fm.dz[3]]+"\n";
+	var jd = p.Jdays(yy, mm, dd, hh, mt, ss);
+	txt += "对应的儒略日:"+jd+"\n\n";
+	
+	txt += "真太阳时八字为:"+p.ctg[fm.tg[0]]+p.cdz[fm.dz[0]]+p.ctg[fm.tg[1]]+p.cdz[fm.dz[1]]+p.ctg[fm.tg[2]]+p.cdz[fm.dz[2]]+p.ctg[fm.tg[3]]+p.cdz[fm.dz[3]]+"\n\n";
 	
 	txt += "该八字的刑冲合害关系:\n";
 	var gxs = GetGX(fm['tg'], fm['dz']);
@@ -146,11 +149,18 @@ function chg(){
 			txt += implode('+', a) + ':' + gx[1][4] + "\n";
 		}
 	}
-	txt += "\n";
+
+	txt += "\n该时刻出生的男士起运信息(各门派算法不同,此为其一):\n";
+	txt += fm['qyy_desc'] + "(与十三行八字APP一致)\n";
+	txt += fm['qyy_desc2'] + "\n";
+	txt += "大运:\n";
+	for(var x in fm['dy']){
+		var a = fm['dy'][x];
+		txt += a['zqage'] + "~" + a['zboz'] + "岁\t[" + a['syear'] + "-" + a['eyear'] + "年]\t" + a['zfma'] + "" + a['zfmb'] + "\t" + a['nzsc'] + "\n";
+		
+	}
 	
-	var jd = p.Jdays(yy, mm, dd, hh, mt, ss);
-	txt += "对应的儒略日:"+jd+"\n\n";
-	
+	txt += "\n\n";
 	txt += "[北京时间]:\n";
 	var [utrise, utset, dt, trise, tset] = p.risenset(jd, J, W, 2);
 	var t1 = (trise === false) ? ['-','-','-','-','-','-'] : p.Jtime(trise);
