@@ -102,6 +102,8 @@ function infinity() {
 		}
 		if (typeof(select) != 'undefined') {
 			this.element.appendChild(select);
+			
+			this.next(select.value); //如果还有子类
 		}
 	}
 

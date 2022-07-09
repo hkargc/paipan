@@ -31,6 +31,8 @@ document.write("<script src='./js/paipan.gx.js?v="+Math.random()+"'><\/script>")
 <select id="ss" onchange="chg()" style="width:50px;"></select>秒
 
 <span id="city"></span>
+
+<span id="jw"></span>
 </div>
 
 <div>
@@ -56,8 +58,9 @@ tgdz[1] = '地支';
 function chg(){
 
 	var id = inf.get();
-	if((id == 0) || (JW[id] == undefined)){
+	if((id == 0) || (JW[id] == undefined) || (JW[id][3] == undefined)){
 		$('#text').val("请选择城市!");
+		$("#jw").html("");
 		return false;
 	}
 	var txt = '';
@@ -123,8 +126,10 @@ function chg(){
 	}
 	txt += "\n";
 	
-	var J = jw[2]+jw[3]/60;
-	var W = jw[4]+jw[5]/60;
+	var J = jw[2];
+	var W = jw[3];
+	
+	$("#jw").html("东经:"+J+";北纬"+W);
 
 	var fm = p.fatemaps(0, yy, mm, dd, hh, mt, ss, J, W); //此处演示真太阳时排盘
 
@@ -260,7 +265,7 @@ $(function(){
 	$("#ss").val(d.getSeconds());
 	
 	inf = new infinity();
-	inf.init('city', JW, 2, chg);
+	inf.init('city', JW, 427, chg);
 		
 	chg();
 });
