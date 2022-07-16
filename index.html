@@ -170,7 +170,8 @@ function chg(){
 	var [utrise, utset, dt, trise, tset] = p.risenset(jd, J, W, 2);
 	var t1 = (trise === false) ? ['-','-','-','-','-','-'] : p.Jtime(trise);
 	var t2 = (tset === false) ? ['-','-','-','-','-','-'] : p.Jtime(tset);
-	txt += "太阳升起:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\n";
+	var t3 = p.Jtime((tset - trise)/2 + trise);
+	txt += "太阳升起:"+t1[3]+"时"+t1[4]+"分"+t1[5]+"秒\t"+"降落:"+t2[3]+"时"+t2[4]+"分"+t2[5]+"秒\t"+"正午:"+t3[3]+"时"+t3[4]+"分"+t3[5]+"秒\n";
 	
 	var [utrise, utset] = p.risenset(jd, J, W, 3); //注意这里的dt来源
 	var t1 = (utrise === false) ? ['-','-','-','-','-','-'] : p.Jtime(utrise - dt + (p.J - J) * 4 / 60 / 24);
