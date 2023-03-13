@@ -92,7 +92,7 @@ function chg(){
 	
 	var jq = p.GetAdjustedJQ(yy - 1, false);
 	var days = now - Math.floor(jq[18] + 0.5); //距离冬至的天数
-	if((days >= 0) && (days <= 81)){ //冬至
+	if((days >= 0) && (days < 81)){ //冬至
 		txt += p.dxs[(parseInt(days / 9) + 1)] + "九第" + ((days % 9) + 1) + "天\n";
 	}
 
