@@ -1460,12 +1460,12 @@ class paipan{
 	}
     /**
      * 將公历年月日時轉换爲儒略日历时间
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
-     * @param int $dd(1-31)
-     * @param int $hh(0-23)
-     * @param int $mt(0-59)
-     * @param int $ss(0-59)
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
+     * @param int $dd (1-31)
+     * @param int $hh (0-23)
+     * @param int $mt (0-59)
+     * @param int $ss (0-59)
      * @return false|float
      */
     public function Jdays($yy, $mm, $dd, $hh = 12, $mt = 0, $ss = 0) {
@@ -1537,9 +1537,9 @@ class paipan{
     }
     /**
      * 驗證公历日期是否有效
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
-     * @param int $dd(1-31)
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
+     * @param int $dd (1-31)
      * @return boolean
      */
     public function ValidDate($yy, $mm, $dd) {
@@ -1568,7 +1568,7 @@ class paipan{
     /**
      * 计算指定年(公历)的春分点(vernal equinox)理论值
      * 因地球在繞日运行時會因受到其他星球之影響而產生攝動(perturbation),必須將此現象產生的偏移量加入.
-     * @param int $yy(-1000-3000)
+     * @param int $yy (-1000-3000)
      * @return false|number 返回儒略日历时间
      */
     private function VE($yy) {
@@ -1589,7 +1589,7 @@ class paipan{
     /**
      * 获取指定公历年的春分开始的24节气理论值
      * 大致原理是:把公转轨道进行24等分,每一等分为一个节气,此为理论值,再用摄动值(Perturbation)和固定参数DeltaT做调整得到实际值
-     * @param int $yy(-1000-3000)
+     * @param int $yy (-1000-3000)
      * @return array 下标从0开始的数组
      */
     private function MeanJQJD($yy) {
@@ -1742,7 +1742,7 @@ class paipan{
     }
     /**
      * 获取指定公历年對Perturbaton作調整後的自春分點開始的24節氣,1645年农历七月及之前为<授时历>,八月开始启用传教士汤若望的<时宪历>,与现代天文算法存在误差,此处依据寿星万年历进行修正
-     * @param int $yy(-1000-3000)
+     * @param int $yy (-1000-3000)
 	 * @param bool $calendar 是否根据黄历进行调整,调整后精度为日(仅用于农历计算)
      * @return array $this->jq[$i%24]
      */
@@ -1944,7 +1944,7 @@ class paipan{
     }
     /**
      * 以比較日期法求算冬月及其餘各月名稱代碼,包含閏月,冬月為0,臘月為1,正月為2,餘類推.閏月多加0.5 [各月名稱, 含冬至連續16個新月點]
-     * @param int $yy(-1000-3000)
+     * @param int $yy (-1000-3000)
      * @return array
      */
     private function GetZQandSMandLunarMonthCode($yy) {
@@ -2009,9 +2009,9 @@ class paipan{
     }
     /**
      * 将农历时间转换成公历时间 [年,月,日,附加资料]
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
-     * @param int $dd(1-30)
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
+     * @param int $dd (1-30)
      * @param boolean $ry 是否闰月
      * @return false/array
      */
@@ -2097,9 +2097,9 @@ class paipan{
     }
     /**
      * 将公历时间转换成农历时间(古代历法来自寿星万年历)
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
-     * @param int $dd(1-31)
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
+     * @param int $dd (1-31)
      * @return false/array(年,月,日,是否闰月,附加资料)
      */
     public function Solar2Lunar($yy, $mm, $dd) {
@@ -2262,9 +2262,9 @@ class paipan{
     }
     /**
      * 计算公历的某天是星期几(PHP中的date方法,此处演示儒略日历的转换作用) $this->wkd[$i]
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
-     * @param int $dd(1-31)
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
+     * @param int $dd (1-31)
      * @return false/int
      */
     public function GetWeek($yy, $mm, $dd) {
@@ -2281,8 +2281,8 @@ class paipan{
     }
     /**
      * 获取公历某个月有多少天
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
      * @return int
      */
     public function GetSolarDays($yy, $mm){
@@ -2302,8 +2302,8 @@ class paipan{
     }
     /**
      * 获取农历某个月有多少天
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
      * @param bool $ry 是否闰月
      * @return int
      */
@@ -2321,7 +2321,7 @@ class paipan{
     }
     /**
      * 获取农历某年的闰月,0为无闰月
-     * @param int $yy(-1000-3000)
+     * @param int $yy (-1000-3000)
      * @return int
      */
     public function GetLeap($yy){
@@ -2335,12 +2335,12 @@ class paipan{
     }
     /**
      * 根据公历年月日精确计算星座下标 $this->cxz[xz]
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
-     * @param int $dd(1-31)
-     * @param int $hh(0-23) 时间
-     * @param int $mt(0-59) 分钟
-     * @param int $ss(0-59) 秒数
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
+     * @param int $dd (1-31)
+     * @param int $hh (0-23) 时间
+     * @param int $mt (0-59) 分钟
+     * @param int $ss (0-59) 秒数
      * @return int|false
      */
     public function GetXZ($yy, $mm, $dd, $hh = 0, $mt = 0, $ss = 0) {
@@ -2375,12 +2375,12 @@ class paipan{
     }
     /**
      * 四柱計算,分早子时晚子时,传公历
-     * @param int $yy(-1000-3000)
-     * @param int $mm(1-12)
-     * @param int $dd(1-31)
-     * @param int $hh(0-23)
-     * @param int $mt(0-59),分钟,在跨节的时辰上会需要,有的排盘忽略跨节
-     * @param int $ss(0-59),秒数
+     * @param int $yy (-1000-3000)
+     * @param int $mm (1-12)
+     * @param int $dd (1-31)
+     * @param int $hh (0-23)
+     * @param int $mt (0-59),分钟,在跨节的时辰上会需要,有的排盘忽略跨节
+     * @param int $ss (0-59),秒数
      * @return false/array(天干, 地支, 附加资料)
      */
     public function GetGZ($yy, $mm, $dd, $hh, $mt = 0, $ss = 0) {
@@ -2455,7 +2455,7 @@ class paipan{
     }
     /**
      * 根据年干支计算所有合法的月干支
-     * @param int $ygz(0-59) 年柱干支代码
+     * @param int $ygz (0-59) 年柱干支代码
      * @return array 月柱干支代码列表
      */
     public function MGZ($ygz) {
@@ -2474,7 +2474,7 @@ class paipan{
     }
     /**
      * 根据日干支计算所有合法的时干支
-     * @param int $dgz(0-59) 日柱干支代码
+     * @param int $dgz (0-59) 日柱干支代码
      * @return array 时柱干支代码列表
      */
     public function HGZ($dgz) {
@@ -2493,8 +2493,8 @@ class paipan{
     }
     /**
      * 根据一柱天干地支代码计算该柱的六十甲子代码
-     * @param int $tg(0-9) 天干代码
-     * @param int $dz(0-11) 地支代码
+     * @param int $tg (0-9) 天干代码
+     * @param int $dz (0-11) 地支代码
      * @return false/int 干支代码
      */
     public function GZ($tg, $dz){
@@ -2555,7 +2555,6 @@ class paipan{
         if($this->zwz && (substr($hgzs[$hgz], -1) == '+')){ //晚子时,日柱后挪一天
             $dgz = ($dgz + 1) % 60;
         }
-        $yeaf = $yeai + $mx * 60;
 
         $ifs = []; //initial-final 返回一个含起止时间的数组
         
