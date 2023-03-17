@@ -2516,12 +2516,12 @@ class paipan{
     }
     /**
      * 根据八字干支查找对应的公历日期(GanZhi To GongLi)
-     * @param int ygz(0-59)
-     * @param int mgz(0-59)
-     * @param int dgz(0-59)
-     * @param int hgz(0-59)
-     * @param int yeai(-1000-3000) 起始年 year initial
-     * @param int mx 查找多少个甲子
+     * @param int $ygz (0-59)
+     * @param int $mgz (0-59)
+     * @param int $dgz (0-59)
+     * @param int $hgz (0-59)
+     * @param int $yeai (-1000-3000) 起始年 year initial
+     * @param int $mx 查找多少个甲子
      * @return false/array
      */
     public function gz2gl($ygz, $mgz, $dgz, $hgz, $yeai, $mx) {
