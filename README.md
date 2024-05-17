@@ -6,7 +6,7 @@ PHP JavaScript 农历公历干支历互转,万年历,四柱,六十甲子,属相,
 算法原理和JS源码完全来自: http://www.bieyu.com/<br />
 结果比对及农历修正来自寿星万年历: http://www.nongli.net/sxwnl/<br />
 
-演示地址: https://hkargv.github.io/paipan/ <br />
+演示地址: https://hkargc.github.io/paipan/ <br />
 
 此工具类包含:<br />
 1,儒略日历<br />
