@@ -1,7 +1,7 @@
 "use strict";
 /**
- * @author hkargc@139.com
- * @link https://github.com/hkargv/paipan
+ * @author hkargc@gmail.com
+ * @link https://github.com/hkargc/paipan
  * 本日历及排盘类完全源于以下项目,本人仅作为代码搬运工,感谢项目作者的无私分享
  * 日历部分由bieyu.com搬运而来,其详细阐述了的历法转换原理及星体天文算法等,并提供了JS源码及部分PHP源码,项目地址: http://www.bieyu.com/
  * 农历校正及古代农历算法完全来自寿星万年历,感谢福建莆田第十中学许剑伟老师,项目地址: http://www.nongli.net/sxwnl/

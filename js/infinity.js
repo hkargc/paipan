@@ -1,7 +1,7 @@
 "use strict";
 /**
  * 无限级下拉菜单
- * @author hkargc@139.com
+ * @author hkargc@gmail.com
  */
 function infinity() {
 	/**
