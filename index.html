@@ -8,9 +8,9 @@
 if(top != self){  
 	top.location.href = self.location.href;  
 }
-document.write("<script src='./js/jquery-3.6.0.min.js'><\/script>");
-document.write("<script src='./js/JW.js?v="+Math.random()+"'><\/script>"); //全国经度数据,来源于寿星万年历
-document.write("<script src='./js/infinity.js?v="+Math.random()+"'><\/script>"); //无限级选择
+document.write("<script src='./js/jquery-4.0.0.min.js'><\/script>");
+document.write("<script src='./js/JW.js?v="+Math.random()+"'><\/script>"); //全国经度数据,来源: https://github.com/xiangyuecn/AreaCity-JsSpider-StatsGov
+document.write("<script src='./js/selectmenu.js?_="+Math.random()+"'><\/script>"); //手搓的简易下拉菜单
 
 document.write("<script src='./js/paipan.js?v="+Math.random()+"'><\/script>");
 <!-- document.write("<script src='./js/paipan.min.js?v="+Math.random()+"'><\/script>"); -->
@@ -57,7 +57,7 @@ tgdz[1] = '地支';
 
 function chg(){
 
-	var id = inf.get();
+	var id = menu.get();
 	if((id == 0) || (JW[id] == undefined) || (JW[id][3] == undefined)){
 		$('#text').val("请选择城市!");
 		$("#jw").html("");
@@ -265,8 +265,8 @@ $(function(){
 	$("#mt").val(d.getMinutes());
 	$("#ss").val(d.getSeconds());
 	
-	inf = new infinity();
-	inf.init('city', JW, 2126, chg);
+	window.menu = new selectmenu();
+	menu.init($('#city'), JW, 432, chg, {force:true});
 		
 	chg();
 });
